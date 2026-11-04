@@ -190,8 +190,8 @@ export async function getWindowsDiagnostics(): Promise<WindowsDiagnostics> {
 export type ReportFormat = "pdf" | "html" | "csv" | "json";
 export type ReportType = "full" | "hardware" | "battery" | "storage" | "benchmark" | "display" | "inspection" | "summary";
 
-export async function buildReport(reportType: ReportType, includeSensitive: boolean): Promise<unknown> {
-  return invoke<unknown>("build_report", { reportType, includeSensitive });
+export async function buildReport(reportType: ReportType, includeSensitive: boolean): Promise<import("./types").ReportBundle> {
+  return invoke<import("./types").ReportBundle>("build_report", { reportType, includeSensitive });
 }
 
 export async function saveReportFile(path: string, contents: string, isBase64: boolean, overwrite: boolean): Promise<void> {

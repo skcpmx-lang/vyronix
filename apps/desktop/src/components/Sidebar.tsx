@@ -1,5 +1,5 @@
 import { MODULES, type ModuleDef } from "../lib/modules";
-import { useAppStore, type PageId } from "../lib/store";
+import { useAppStore } from "../lib/store";
 import { isNative } from "../lib/ipc";
 
 const CATEGORY_ORDER: ModuleDef["category"][] = [

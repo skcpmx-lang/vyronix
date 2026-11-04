@@ -351,6 +351,47 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
 };
 
+// ---- Report model (mirrors Rust vyronix-core::report) ----
+
+export interface ReportEntry {
+  label: string;
+  value: string;
+  status: string;
+  source: string;
+}
+
+export interface ReportSection {
+  title: string;
+  entries: ReportEntry[];
+}
+
+export interface DeviceSummary {
+  device_name: string;
+  manufacturer: string;
+  model: string;
+  os: string;
+}
+
+export interface ReportModel {
+  title: string;
+  report_type: string;
+  generated_at_ms: number;
+  app_version: string;
+  device: DeviceSummary;
+  sections: ReportSection[];
+  findings: Finding[];
+  overall: OverallScore | null;
+  recommendations: Recommendation[];
+  include_sensitive: boolean;
+}
+
+export interface ReportBundle {
+  model: ReportModel;
+  html: string;
+  csv: string;
+  json: string;
+}
+
 export interface AppInfo {
   name: string;
   brand: string;
