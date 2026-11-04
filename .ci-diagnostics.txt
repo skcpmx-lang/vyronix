@@ -3,216 +3,138 @@ cargo 1.99.1 (5f94df478 2026-08-27)
 rustc 1.99.1 (58cf8f9c3 2026-10-13)
 
 === cargo clippy -p vyronix-core --all-targets -- -D warnings ===
-    Updating crates.io index
-     Locking 13 packages to highest compatible versions
- Downloading crates ...
-  Downloaded itoa v1.0.18
-  Downloaded proc-macro2 v1.0.107
-  Downloaded quote v1.0.47
-  Downloaded memchr v2.8.3
-  Downloaded serde v1.0.229
-  Downloaded thiserror-impl v2.0.21
-  Downloaded zmij v1.0.23
-  Downloaded serde_core v1.0.229
-  Downloaded thiserror v2.0.21
-  Downloaded unicode-ident v1.0.27
-  Downloaded serde_derive v1.0.229
-  Downloaded serde_json v1.0.154
-  Downloaded syn v3.0.9
-   Compiling proc-macro2 v1.0.107
-   Compiling unicode-ident v1.0.27
-   Compiling quote v1.0.47
-   Compiling serde_core v1.0.229
-   Compiling zmij v1.0.23
-   Compiling thiserror v2.0.21
-   Compiling serde_json v1.0.154
-   Compiling serde v1.0.229
-    Checking memchr v2.8.3
-    Checking itoa v1.0.18
-   Compiling syn v3.0.9
-   Compiling serde_derive v1.0.229
-   Compiling thiserror-impl v2.0.21
     Checking vyronix-core v0.1.0 (/home/runner/work/vyronix/vyronix/crates/vyronix-core)
-error[E0369]: binary operation `==` cannot be applied to type `std::vec::Vec<recommend::Recommendation>`
-  --> crates/vyronix-core/src/report.rs:50:5
-   |
-40 | #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-   |                        --------- in this derive macro expansion
-...
-50 |     pub recommendations: Vec<Recommendation>,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: an implementation of `std::cmp::PartialEq` might be missing for `recommend::Recommendation`
-  --> crates/vyronix-core/src/recommend.rs:44:1
-   |
-44 | pub struct Recommendation {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^ must implement `std::cmp::PartialEq`
-help: consider annotating `recommend::Recommendation` with `#[derive(PartialEq)]`
-  --> crates/vyronix-core/src/recommend.rs:44:1
-   |
-44 + #[derive(PartialEq)]
-45 | pub struct Recommendation {
-   |
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> crates/vyronix-core/src/diagnostics.rs:134:17
+    |
+134 |                 &recommendation, if sev == Severity::Unknown { Confidence::Low } else { Confidence::High },
+    |                 ^^^^^^^^^^^^^^^ help: change this to: `recommendation`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_borrow
+    = note: `-D clippy::needless-borrow` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
 
-error[E0061]: this function takes 0 arguments but 1 argument was supplied
-   --> crates/vyronix-core/src/smart.rs:377:20
+error: consider using `sort_by_key`
+   --> crates/vyronix-core/src/diagnostics.rs:293:5
     |
-377 |         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-    |                    ^^^^^^^^^^^^^^^^^^ ------ unexpected argument of type `&std::vec::Vec<smart::AtaAttribute>`
+293 |     findings.sort_by(|a, b| b.severity.rank().cmp(&a.severity.rank()));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-note: function defined here
-   --> crates/vyronix-core/src/smart.rs:375:8
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_sort_by
+    = note: `-D clippy::unnecessary-sort-by` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_sort_by)]`
+help: try
     |
-375 |     fn ata_power_on_hours() {
-    |        ^^^^^^^^^^^^^^^^^^
-help: remove the extra argument
-    |
-377 -         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-377 +         assert_eq!(ata_power_on_hours(), Some(12345));
+293 -     findings.sort_by(|a, b| b.severity.rank().cmp(&a.severity.rank()));
+293 +     findings.sort_by_key(|a| std::cmp::Reverse(a.severity.rank()));
     |
 
-error[E0277]: the trait bound `f64: std::cmp::Eq` is not satisfied
-  --> crates/vyronix-core/src/validation.rs:12:18
-   |
- 9 | #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-   |                                   -- in this derive macro expansion
-...
-12 |     OutOfRange { value: f64, min: f64, max: f64 },
-   |                  ^^^^^^^^^^ the trait `std::cmp::Eq` is not implemented for `f64`
-   |
-   = help: the following other types implement trait `std::cmp::Eq`:
-             i128
-             i16
-             i32
-             i64
-             i8
-             isize
-             u128
-             u16
-           and 4 others
-note: required by a bound in `std::cmp::AssertParamIsEq`
-  --> /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/cmp.rs:392:0
+error: this function has too many arguments (8/7)
+   --> crates/vyronix-core/src/diagnostics.rs:297:1
+    |
+297 | / fn push_temp(
+298 | |     findings: &mut Vec<Finding>,
+299 | |     id: &str,
+300 | |     category: &str,
+...   |
+305 | |     recommendation: &str,
+306 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
 
-error: unused variable: `le64`
-  --> crates/vyronix-core/src/smart.rs:57:9
-   |
-57 |     let le64 = |o: usize| {
-   |         ^^^^ help: if this is intentional, prefix it with an underscore: `_le64`
-   |
-   = note: `-D unused-variables` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(unused_variables)]`
-
-Some errors have detailed explanations: E0277, E0369.
-For more information about an error, try `rustc --explain E0277`.
 error: could not compile `vyronix-core` (lib) due to 3 previous errors
 warning: build failed, waiting for other jobs to finish...
-error[E0308]: mismatched types
-   --> crates/vyronix-core/src/smart.rs:377:48
-    |
-377 |         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-    |                                                ^^^^^^^^^^^ expected `()`, found `Option<{integer}>`
-    |
-    = note: expected unit type `()`
-                    found enum `std::option::Option<{integer}>`
-
-Some errors have detailed explanations: E0061, E0277, E0308, E0369.
-For more information about an error, try `rustc --explain E0061`.
-error: could not compile `vyronix-core` (lib test) due to 5 previous errors
+error: could not compile `vyronix-core` (lib test) due to 3 previous errors
 CLIPPY_EXIT=101
 
 === cargo test -p vyronix-core ===
-   Compiling serde_core v1.0.229
-   Compiling zmij v1.0.23
-   Compiling memchr v2.8.3
-   Compiling itoa v1.0.18
-   Compiling thiserror v2.0.21
-   Compiling serde v1.0.229
-   Compiling serde_json v1.0.154
    Compiling vyronix-core v0.1.0 (/home/runner/work/vyronix/vyronix/crates/vyronix-core)
-error[E0369]: binary operation `==` cannot be applied to type `Vec<Recommendation>`
-  --> crates/vyronix-core/src/report.rs:50:5
-   |
-40 | #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-   |                        --------- in this derive macro expansion
-...
-50 |     pub recommendations: Vec<Recommendation>,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: an implementation of `PartialEq` might be missing for `Recommendation`
-  --> crates/vyronix-core/src/recommend.rs:44:1
-   |
-44 | pub struct Recommendation {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^ must implement `PartialEq`
-help: consider annotating `Recommendation` with `#[derive(PartialEq)]`
-  --> crates/vyronix-core/src/recommend.rs:44:1
-   |
-44 + #[derive(PartialEq)]
-45 | pub struct Recommendation {
-   |
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.33s
+     Running unittests src/lib.rs (target/debug/deps/vyronix_core-5773c01876455af2)
 
-error[E0277]: the trait bound `f64: Eq` is not satisfied
-  --> crates/vyronix-core/src/validation.rs:12:18
-   |
- 9 | #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-   |                                   -- in this derive macro expansion
-...
-12 |     OutOfRange { value: f64, min: f64, max: f64 },
-   |                  ^^^^^^^^^^ the trait `Eq` is not implemented for `f64`
-   |
-   = help: the following other types implement trait `Eq`:
-             i128
-             i16
-             i32
-             i64
-             i8
-             isize
-             u128
-             u16
-           and 4 others
-note: required by a bound in `std::cmp::AssertParamIsEq`
-  --> /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/cmp.rs:392:0
+running 72 tests
+test battery::tests::above_design_reported_not_clamped ... ok
+test battery::tests::health_measurement_unavailable_when_missing ... ok
+test battery::tests::implausible_design_is_anomaly ... ok
+test battery::tests::missing_design_not_computable ... ok
+test battery::tests::missing_full_not_computable ... ok
+test battery::tests::normal_health ... ok
+test battery::tests::runtime_estimate ... ok
+test battery::tests::severity_thresholds ... ok
+test battery::tests::wear_never_negative_in_ok_case ... ok
+test battery::tests::zero_design_not_computable ... ok
+test battery::tests::zero_full_not_computable ... ok
+test bench::tests::checksum_stable_and_sensitive ... ok
+test bench::tests::empty_buffer_verify ... ok
+test battery::tests::implausible_health_is_anomaly_not_clamped ... ok
+test bench::tests::float_workload_deterministic_and_finite ... ok
+test bench::tests::integer_workload_deterministic ... ok
+test bench::tests::integer_workload_zero_iterations ... ok
+test bench::tests::walking_ones_varies ... ok
+test bench::tests::verify_detects_corruption ... ok
+test diagnostics::tests::critical_storage_sorts_first ... ok
+test diagnostics::tests::every_finding_has_required_fields ... ok
+test diagnostics::tests::failed_tests_critical ... ok
+test diagnostics::tests::good_battery ... ok
+test diagnostics::tests::temp_thresholds ... ok
+test diagnostics::tests::temp_unavailable_is_unknown ... ok
+test diagnostics::tests::unknown_battery_not_good ... ok
+test model::tests::empty_has_no_value ... ok
+test model::tests::estimated_is_labelled ... ok
+test model::tests::serialization_roundtrip ... ok
+test model::tests::severity_ordering ... ok
+test model::tests::status_value_presence ... ok
+test model::tests::unknown_is_not_good ... ok
+test recommend::tests::missing_facts_unknown_not_guessed ... ok
+test recommend::tests::all_seven_use_cases_present ... ok
+test recommend::tests::rationale_cites_actual_values ... ok
+test recommend::tests::strong_machine_well_suited ... ok
+test report::tests::csv_escapes_commas_and_quotes ... ok
+test report::tests::csv_output_has_header_and_rows ... ok
+test recommend::tests::weak_machine_limited ... ok
+test report::tests::html_escapes_injection ... ok
+test report::tests::html_contains_branding_and_sections ... ok
+test bench::tests::pattern_fill_verify_roundtrip_all_patterns ... ok
+test report::tests::timestamp_format ... ok
+test report::tests::sensitive_note_present_when_excluded ... ok
+test scoring::tests::all_unknown_yields_no_score ... ok
+test scoring::tests::coverage_confidence_tiers ... ok
+test scoring::tests::empty_components_insufficient ... ok
+test scoring::tests::unknown_never_awarded_points ... ok
+test scoring::tests::serialization_roundtrip ... ok
+test scoring::tests::unsupported_excluded_from_denominator ... ok
+test scoring::tests::weighted_average_correct ... ok
+test smart::tests::ata_empty_is_unknown_not_good ... ok
+test smart::tests::ata_pending_sector_critical ... ok
+test smart::tests::ata_power_on_hours_extraction ... ok
+test smart::tests::ata_reallocated_warning_then_critical ... ok
+test smart::tests::ata_temperature_extraction ... ok
+test smart::tests::ata_vendor_threshold_breach_critical ... ok
+test smart::tests::nvme_critical_warning_is_critical ... ok
+test smart::tests::nvme_healthy_is_good ... ok
+test smart::tests::nvme_media_errors_warning ... ok
+test smart::tests::nvme_parse_minimal ... ok
+test smart::tests::nvme_short_buffer_returns_none ... ok
+test smart::tests::nvme_spare_below_threshold_critical ... ok
+test smart::tests::nvme_zero_kelvin_is_none ... ok
+test report::tests::json_roundtrip ... ok
+test validation::tests::clean_text_rejects_control_and_length ... ok
+test validation::tests::export_path_rejects_nul ... ok
+test validation::tests::export_path_rejects_traversal ... ok
+test validation::tests::poll_interval_bounds ... ok
+test validation::tests::range_accepts_and_rejects ... ok
+test validation::tests::storage_size_bounds ... ok
+test validation::tests::bench_duration_bounds ... ok
 
-warning: unused variable: `le64`
-  --> crates/vyronix-core/src/smart.rs:57:9
-   |
-57 |     let le64 = |o: usize| {
-   |         ^^^^ help: if this is intentional, prefix it with an underscore: `_le64`
-   |
-   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+test result: ok. 72 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-Some errors have detailed explanations: E0277, E0369.
-For more information about an error, try `rustc --explain E0277`.
-error[E0061]: this function takes 0 arguments but 1 argument was supplied
-   --> crates/vyronix-core/src/smart.rs:377:20
-    |
-377 |         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-    |                    ^^^^^^^^^^^^^^^^^^ ------ unexpected argument of type `&Vec<smart::AtaAttribute>`
-    |
-note: function defined here
-   --> crates/vyronix-core/src/smart.rs:375:8
-    |
-375 |     fn ata_power_on_hours() {
-    |        ^^^^^^^^^^^^^^^^^^
-help: remove the extra argument
-    |
-377 -         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-377 +         assert_eq!(ata_power_on_hours(), Some(12345));
-    |
+   Doc-tests vyronix_core
 
-error[E0308]: mismatched types
-   --> crates/vyronix-core/src/smart.rs:377:48
-    |
-377 |         assert_eq!(ata_power_on_hours(&attrs), Some(12345));
-    |                                                ^^^^^^^^^^^ expected `()`, found `Option<{integer}>`
-    |
-    = note: expected unit type `()`
-                    found enum `std::option::Option<{integer}>`
+running 0 tests
 
-warning: `vyronix-core` (lib) generated 1 warning
-error: could not compile `vyronix-core` (lib) due to 2 previous errors; 1 warning emitted
-warning: build failed, waiting for other jobs to finish...
-Some errors have detailed explanations: E0061, E0277, E0308, E0369.
-For more information about an error, try `rustc --explain E0061`.
-warning: `vyronix-core` (lib test) generated 1 warning (1 duplicate)
-error: could not compile `vyronix-core` (lib test) due to 4 previous errors; 1 warning emitted
-TEST_EXIT=101
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+TEST_EXIT=0
