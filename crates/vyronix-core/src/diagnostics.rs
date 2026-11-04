@@ -131,7 +131,7 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
                 "storage_health", "Storage", &finding, sev,
                 "SMART attributes / NVMe health log", "Storage SMART interface (ATA attributes / NVMe health log / WMI)",
                 "Interpretation uses vendor thresholds and spec-defined fields, not a universal cutoff.",
-                &recommendation, if sev == Severity::Unknown { Confidence::Low } else { Confidence::High },
+                recommendation, if sev == Severity::Unknown { Confidence::Low } else { Confidence::High },
             ));
         }
         None => findings.push(Finding::new(
@@ -290,10 +290,11 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
         ));
     }
 
-    findings.sort_by(|a, b| b.severity.rank().cmp(&a.severity.rank()));
+    findings.sort_by_key(|f| std::cmp::Reverse(f.severity.rank()));
     findings
 }
 
+#[allow(clippy::too_many_arguments)]
 fn push_temp(
     findings: &mut Vec<Finding>,
     id: &str,
