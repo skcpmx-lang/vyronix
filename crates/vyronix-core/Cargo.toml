@@ -1,0 +1,15 @@
+[package]
+name = "vyronix-core"
+description = "VYRONIX platform-independent diagnostic logic: honest data model, battery/SMART analysis, scoring, benchmarks, reporting."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]

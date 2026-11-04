@@ -1,0 +1,37 @@
+# Rust
+/target/
+**/target/
+Cargo.lock.bak
+
+# Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# Build artifacts
+*.exe
+*.msi
+*.nsis
+*.zip
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+
+# Logs / OS / editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Test / coverage
+coverage/
+.pytest_cache/
+__pycache__/
+
+# Local env
+.env
+.env.*
