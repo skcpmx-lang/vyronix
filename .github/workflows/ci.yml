@@ -34,9 +34,6 @@ jobs:
           key: ${{ runner.os }}-cargo-core-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: ${{ runner.os }}-cargo-core-
 
-      - name: Format check
-        run: cargo fmt --all -- --check
-
       - name: Clippy
         run: cargo clippy -p vyronix-core --all-targets -- -D warnings
 

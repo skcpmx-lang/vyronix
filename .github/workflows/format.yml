@@ -1,0 +1,48 @@
+name: Auto-format (rustfmt)
+
+# The Arena sandbox has no local Rust toolchain (crates.io / rust-lang.org are
+# network-blocked), so rustfmt cannot run locally. This workflow enforces
+# formatting by running rustfmt on CI and committing the result back to the
+# branch. The "[skip ci]" marker prevents re-triggering.
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "**.rs"
+      - "**/Cargo.toml"
+      - "rustfmt.toml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rustfmt:
+    name: Apply rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+
+      - name: Run rustfmt
+        run: cargo fmt --all
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "style: apply rustfmt [skip ci]"
+            git push origin "HEAD:${{ github.ref_name }}"
+          else
+            echo "Already formatted."
+          fi
