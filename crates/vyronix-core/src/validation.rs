@@ -6,7 +6,7 @@
 use std::path::{Component, Path, PathBuf};
 
 /// Errors produced by validation.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum ValidationError {
     #[error("value {value} is out of range [{min}, {max}]")]
     OutOfRange { value: f64, min: f64, max: f64 },

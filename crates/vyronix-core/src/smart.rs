@@ -54,11 +54,6 @@ pub fn parse_nvme_health(buf: &[u8]) -> Option<NvmeHealth> {
         return None;
     }
     let le16 = |o: usize| u16::from_le_bytes([buf[o], buf[o + 1]]) as u64;
-    let le64 = |o: usize| {
-        let mut b = [0u8; 8];
-        b.copy_from_slice(&buf[o..o + 8]);
-        u64::from_le_bytes(b)
-    };
     let le128 = |o: usize| {
         let mut b = [0u8; 16];
         b.copy_from_slice(&buf[o..o + 16]);
@@ -372,8 +367,8 @@ mod tests {
     }
 
     #[test]
-    fn ata_power_on_hours() {
+    fn ata_power_on_hours_extraction() {
         let attrs = vec![attr(9, 90, 90, 0, 12345)];
-        assert_eq!(ata_power_on_hours(&attrs), Some(12345));
+        assert_eq!(super::ata_power_on_hours(&attrs), Some(12345));
     }
 }

@@ -40,7 +40,7 @@ impl Suitability {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Recommendation {
     pub use_case: String,
     pub suitability: Suitability,
