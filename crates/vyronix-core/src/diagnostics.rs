@@ -144,13 +144,28 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
 
     // Memory pressure rule.
     if let Some(used) = input.memory_used_pct {
-        let sev = if used >= MEMORY_USED_WARN { Severity::Warning } else { Severity::Good };
+        let sev = if used >= MEMORY_USED_WARN {
+            Severity::Warning
+        } else {
+            Severity::Good
+        };
         findings.push(Finding::new(
-            "memory_pressure", "Memory",
-            if sev == Severity::Warning { "High memory pressure" } else { "Memory availability is healthy" },
-            sev, &format!("{used:.1}% of RAM in use"), "sysinfo / GlobalMemoryStatusEx",
+            "memory_pressure",
+            "Memory",
+            if sev == Severity::Warning {
+                "High memory pressure"
+            } else {
+                "Memory availability is healthy"
+            },
+            sev,
+            &format!("{used:.1}% of RAM in use"),
+            "sysinfo / GlobalMemoryStatusEx",
             &format!("Sustained usage above {MEMORY_USED_WARN}% can cause paging and slowdowns."),
-            if sev == Severity::Warning { "Close unused applications or consider adding RAM." } else { "No action needed." },
+            if sev == Severity::Warning {
+                "Close unused applications or consider adding RAM."
+            } else {
+                "No action needed."
+            },
             Confidence::High,
         ));
     }
@@ -162,32 +177,69 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
     push_temp(&mut findings, "gpu_temp", "GPU", input.gpu_temp_c, GPU_TEMP_WARN, GPU_TEMP_CRIT,
         "GPU temperature sensor (vendor interface when available)",
         "Improve case airflow and clean the GPU cooler. General guidance, not a manufacturer limit.");
-    push_temp(&mut findings, "storage_temp", "Storage", input.storage_temp_c, STORAGE_TEMP_WARN, STORAGE_TEMP_CRIT,
+    push_temp(
+        &mut findings,
+        "storage_temp",
+        "Storage",
+        input.storage_temp_c,
+        STORAGE_TEMP_WARN,
+        STORAGE_TEMP_CRIT,
         "Drive temperature (SMART / NVMe health log)",
-        "Improve drive cooling/airflow. Sustained high temperatures reduce SSD/HDD lifespan.");
+        "Improve drive cooling/airflow. Sustained high temperatures reduce SSD/HDD lifespan.",
+    );
 
     // Driver problems.
     if let Some(n) = input.driver_problem_count {
-        let sev = if n > 0 { Severity::Warning } else { Severity::Good };
+        let sev = if n > 0 {
+            Severity::Warning
+        } else {
+            Severity::Good
+        };
         findings.push(Finding::new(
-            "driver_problems", "Drivers",
-            if n > 0 { "Devices with driver problems detected" } else { "No driver problems detected" },
-            sev, &format!("{n} device(s) reporting a problem"), "WMI Win32_PnPEntity (ConfigManagerErrorCode)",
+            "driver_problems",
+            "Drivers",
+            if n > 0 {
+                "Devices with driver problems detected"
+            } else {
+                "No driver problems detected"
+            },
+            sev,
+            &format!("{n} device(s) reporting a problem"),
+            "WMI Win32_PnPEntity (ConfigManagerErrorCode)",
             "Devices with a non-zero ConfigManagerErrorCode may be malfunctioning.",
-            if n > 0 { "Review the devices in Windows Diagnostics and update/reinstall drivers manually." } else { "No action needed." },
+            if n > 0 {
+                "Review the devices in Windows Diagnostics and update/reinstall drivers manually."
+            } else {
+                "No action needed."
+            },
             Confidence::Medium,
         ));
     }
 
     // System stability (critical events).
     if let Some(n) = input.critical_event_count {
-        let sev = if n > 0 { Severity::Warning } else { Severity::Good };
+        let sev = if n > 0 {
+            Severity::Warning
+        } else {
+            Severity::Good
+        };
         findings.push(Finding::new(
-            "system_stability", "Stability",
-            if n > 0 { "Critical system events recorded" } else { "No recent critical system events" },
-            sev, &format!("{n} critical event(s) in the recent log window"), "Windows Event Log (System)",
+            "system_stability",
+            "Stability",
+            if n > 0 {
+                "Critical system events recorded"
+            } else {
+                "No recent critical system events"
+            },
+            sev,
+            &format!("{n} critical event(s) in the recent log window"),
+            "Windows Event Log (System)",
             "Critical events (e.g. unexpected shutdowns, bugchecks) can indicate instability.",
-            if n > 0 { "Review the events in Windows Diagnostics; investigate recurring bugchecks." } else { "No action needed." },
+            if n > 0 {
+                "Review the events in Windows Diagnostics; investigate recurring bugchecks."
+            } else {
+                "No action needed."
+            },
             Confidence::Medium,
         ));
     }
@@ -195,12 +247,30 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
     // Network.
     if let Some(connected) = input.network_connected {
         findings.push(Finding::new(
-            "network_connectivity", "Network",
-            if connected { "Network connectivity present" } else { "No network connectivity detected" },
-            if connected { Severity::Good } else { Severity::Information },
-            if connected { "At least one active interface" } else { "No active interface detected" },
-            "sysinfo network interfaces", "Based on interface operational state.",
-            if connected { "No action needed." } else { "Check the adapter, cable/Wi-Fi and router if connectivity is expected." },
+            "network_connectivity",
+            "Network",
+            if connected {
+                "Network connectivity present"
+            } else {
+                "No network connectivity detected"
+            },
+            if connected {
+                Severity::Good
+            } else {
+                Severity::Information
+            },
+            if connected {
+                "At least one active interface"
+            } else {
+                "No active interface detected"
+            },
+            "sysinfo network interfaces",
+            "Based on interface operational state.",
+            if connected {
+                "No action needed."
+            } else {
+                "Check the adapter, cable/Wi-Fi and router if connectivity is expected."
+            },
             Confidence::Medium,
         ));
     }
@@ -208,10 +278,15 @@ pub fn evaluate(input: &DiagnosticInput) -> Vec<Finding> {
     // Failed tests.
     if input.failed_test_count > 0 {
         findings.push(Finding::new(
-            "test_failures", "Testing", "One or more hardware tests failed", Severity::Critical,
-            &format!("{} test(s) reported failure", input.failed_test_count), "VYRONIX test results",
+            "test_failures",
+            "Testing",
+            "One or more hardware tests failed",
+            Severity::Critical,
+            &format!("{} test(s) reported failure", input.failed_test_count),
+            "VYRONIX test results",
             "A failed test indicates a real problem detected during testing.",
-            "Review the individual test results and re-test the affected component.", Confidence::High,
+            "Review the individual test results and re-test the affected component.",
+            Confidence::High,
         ));
     }
 
@@ -238,7 +313,13 @@ fn push_temp(
         ));
         return;
     };
-    let sev = if t >= crit { Severity::Critical } else if t >= warn { Severity::Warning } else { Severity::Good };
+    let sev = if t >= crit {
+        Severity::Critical
+    } else if t >= warn {
+        Severity::Warning
+    } else {
+        Severity::Good
+    };
     findings.push(Finding::new(
         id, category,
         &format!("{category} temperature is {}", match sev { Severity::Critical => "critical", Severity::Warning => "elevated", _ => "normal" }),
@@ -255,7 +336,11 @@ mod tests {
 
     #[test]
     fn unknown_battery_not_good() {
-        let input = DiagnosticInput { battery_present: true, battery_health_pct: None, ..Default::default() };
+        let input = DiagnosticInput {
+            battery_present: true,
+            battery_health_pct: None,
+            ..Default::default()
+        };
         let findings = evaluate(&input);
         let b = findings.iter().find(|f| f.id == "battery_health").unwrap();
         assert_eq!(b.severity, Severity::Unknown);
@@ -263,7 +348,11 @@ mod tests {
 
     #[test]
     fn good_battery() {
-        let input = DiagnosticInput { battery_present: true, battery_health_pct: Some(92.0), ..Default::default() };
+        let input = DiagnosticInput {
+            battery_present: true,
+            battery_health_pct: Some(92.0),
+            ..Default::default()
+        };
         let findings = evaluate(&input);
         let b = findings.iter().find(|f| f.id == "battery_health").unwrap();
         assert_eq!(b.severity, Severity::Good);
@@ -294,7 +383,10 @@ mod tests {
 
     #[test]
     fn temp_thresholds() {
-        let input = DiagnosticInput { cpu_temp_c: Some(96.0), ..Default::default() };
+        let input = DiagnosticInput {
+            cpu_temp_c: Some(96.0),
+            ..Default::default()
+        };
         let findings = evaluate(&input);
         let cpu = findings.iter().find(|f| f.id == "cpu_temp").unwrap();
         assert_eq!(cpu.severity, Severity::Critical);
@@ -303,11 +395,16 @@ mod tests {
     #[test]
     fn every_finding_has_required_fields() {
         let input = DiagnosticInput {
-            battery_present: true, battery_health_pct: Some(70.0),
-            storage_severity: Some(Severity::Good), storage_label: "SSD".into(),
-            memory_used_pct: Some(50.0), cpu_temp_c: Some(50.0),
-            driver_problem_count: Some(0), critical_event_count: Some(0),
-            network_connected: Some(true), failed_test_count: 0,
+            battery_present: true,
+            battery_health_pct: Some(70.0),
+            storage_severity: Some(Severity::Good),
+            storage_label: "SSD".into(),
+            memory_used_pct: Some(50.0),
+            cpu_temp_c: Some(50.0),
+            driver_problem_count: Some(0),
+            critical_event_count: Some(0),
+            network_connected: Some(true),
+            failed_test_count: 0,
             ..Default::default()
         };
         for f in evaluate(&input) {
@@ -321,7 +418,10 @@ mod tests {
 
     #[test]
     fn failed_tests_critical() {
-        let input = DiagnosticInput { failed_test_count: 2, ..Default::default() };
+        let input = DiagnosticInput {
+            failed_test_count: 2,
+            ..Default::default()
+        };
         let findings = evaluate(&input);
         let t = findings.iter().find(|f| f.id == "test_failures").unwrap();
         assert_eq!(t.severity, Severity::Critical);

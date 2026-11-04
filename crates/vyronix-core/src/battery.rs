@@ -92,7 +92,11 @@ pub fn compute_health(caps: &BatteryCapacities) -> HealthOutcome {
 /// Wrap a health outcome into an honest Measurement for the UI/report layer.
 pub fn health_measurement(caps: &BatteryCapacities, source: &str) -> Measurement<f64> {
     match compute_health(caps) {
-        HealthOutcome::Ok { health_pct, above_design, .. } => {
+        HealthOutcome::Ok {
+            health_pct,
+            above_design,
+            ..
+        } => {
             let mut m = Measurement::new(health_pct, Status::Available, Confidence::High, source)
                 .with_note("Health = full-charge capacity / design capacity × 100.");
             if above_design {
@@ -102,20 +106,25 @@ pub fn health_measurement(caps: &BatteryCapacities, source: &str) -> Measurement
             }
             m
         }
-        HealthOutcome::Anomaly { reason, raw_health_pct } => {
-            let mut m = Measurement::new(raw_health_pct, Status::Estimated, Confidence::Low, source);
+        HealthOutcome::Anomaly {
+            reason,
+            raw_health_pct,
+        } => {
+            let mut m =
+                Measurement::new(raw_health_pct, Status::Estimated, Confidence::Low, source);
             m.note = Some(format!("Anomaly, not clamped: {reason}"));
             m
         }
-        HealthOutcome::NotComputable { reason } => {
-            Measurement::unavailable(source, reason)
-        }
+        HealthOutcome::NotComputable { reason } => Measurement::unavailable(source, reason),
     }
 }
 
 /// Estimated runtime from remaining capacity and current discharge rate.
 /// Returns None when inputs are invalid. Clearly an estimate.
-pub fn estimate_runtime_hours(remaining_mwh: Option<u64>, discharge_rate_mw: Option<u64>) -> Option<f64> {
+pub fn estimate_runtime_hours(
+    remaining_mwh: Option<u64>,
+    discharge_rate_mw: Option<u64>,
+) -> Option<f64> {
     let remaining = remaining_mwh?;
     let rate = discharge_rate_mw?;
     if rate == 0 {
@@ -151,14 +160,22 @@ mod tests {
     use super::*;
 
     fn caps(design: Option<u64>, full: Option<u64>) -> BatteryCapacities {
-        BatteryCapacities { design_mwh: design, full_charge_mwh: full, remaining_mwh: None }
+        BatteryCapacities {
+            design_mwh: design,
+            full_charge_mwh: full,
+            remaining_mwh: None,
+        }
     }
 
     #[test]
     fn normal_health() {
         let out = compute_health(&caps(Some(50_000), Some(45_000)));
         match out {
-            HealthOutcome::Ok { health_pct, wear_pct, above_design } => {
+            HealthOutcome::Ok {
+                health_pct,
+                wear_pct,
+                above_design,
+            } => {
                 assert!((health_pct - 90.0).abs() < 1e-9);
                 assert!((wear_pct - 10.0).abs() < 1e-9);
                 assert!(!above_design);
@@ -169,29 +186,45 @@ mod tests {
 
     #[test]
     fn missing_design_not_computable() {
-        assert!(matches!(compute_health(&caps(None, Some(40_000))), HealthOutcome::NotComputable { .. }));
+        assert!(matches!(
+            compute_health(&caps(None, Some(40_000))),
+            HealthOutcome::NotComputable { .. }
+        ));
     }
 
     #[test]
     fn missing_full_not_computable() {
-        assert!(matches!(compute_health(&caps(Some(50_000), None)), HealthOutcome::NotComputable { .. }));
+        assert!(matches!(
+            compute_health(&caps(Some(50_000), None)),
+            HealthOutcome::NotComputable { .. }
+        ));
     }
 
     #[test]
     fn zero_design_not_computable() {
-        assert!(matches!(compute_health(&caps(Some(0), Some(40_000))), HealthOutcome::NotComputable { .. }));
+        assert!(matches!(
+            compute_health(&caps(Some(0), Some(40_000))),
+            HealthOutcome::NotComputable { .. }
+        ));
     }
 
     #[test]
     fn zero_full_not_computable() {
-        assert!(matches!(compute_health(&caps(Some(50_000), Some(0))), HealthOutcome::NotComputable { .. }));
+        assert!(matches!(
+            compute_health(&caps(Some(50_000), Some(0))),
+            HealthOutcome::NotComputable { .. }
+        ));
     }
 
     #[test]
     fn above_design_reported_not_clamped() {
         let out = compute_health(&caps(Some(50_000), Some(52_000)));
         match out {
-            HealthOutcome::Ok { health_pct, above_design, .. } => {
+            HealthOutcome::Ok {
+                health_pct,
+                above_design,
+                ..
+            } => {
                 assert!((health_pct - 104.0).abs() < 1e-9);
                 assert!(above_design);
             }

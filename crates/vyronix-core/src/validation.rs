@@ -33,7 +33,11 @@ pub fn range_f64(value: f64, min: f64, max: f64) -> Result<f64, ValidationError>
 /// Validate an integer range.
 pub fn range_u64(value: u64, min: u64, max: u64) -> Result<u64, ValidationError> {
     if value < min || value > max {
-        return Err(ValidationError::OutOfRange { value: value as f64, min: min as f64, max: max as f64 });
+        return Err(ValidationError::OutOfRange {
+            value: value as f64,
+            min: min as f64,
+            max: max as f64,
+        });
     }
     Ok(value)
 }
@@ -59,7 +63,10 @@ pub fn clean_text(s: &str, max_len: usize) -> Result<String, ValidationError> {
 ///  * must end with an allowed report extension.
 ///
 /// Returns a normalized PathBuf on success. This does NOT touch the filesystem.
-pub fn sanitize_export_path(path: &str, allowed_extensions: &[&str]) -> Result<PathBuf, ValidationError> {
+pub fn sanitize_export_path(
+    path: &str,
+    allowed_extensions: &[&str],
+) -> Result<PathBuf, ValidationError> {
     if path.trim().is_empty() {
         return Err(ValidationError::EmptyPath);
     }
@@ -77,9 +84,15 @@ pub fn sanitize_export_path(path: &str, allowed_extensions: &[&str]) -> Result<P
             Component::CurDir => return Err(ValidationError::InvalidPath),
         }
     }
-    let ext = p.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase());
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_ascii_lowercase());
     match ext {
-        Some(e) if allowed_extensions.iter().any(|a| a.eq_ignore_ascii_case(&e)) => {}
+        Some(e)
+            if allowed_extensions
+                .iter()
+                .any(|a| a.eq_ignore_ascii_case(&e)) => {}
         _ => return Err(ValidationError::InvalidPath),
     }
     Ok(p.to_path_buf())

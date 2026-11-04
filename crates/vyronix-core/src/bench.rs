@@ -169,8 +169,13 @@ mod tests {
     #[test]
     fn pattern_fill_verify_roundtrip_all_patterns() {
         let patterns = [
-            Pattern::Zero, Pattern::Ones, Pattern::Alternating55, Pattern::AlternatingAA,
-            Pattern::WalkingOnes(0), Pattern::WalkingOnes(17), Pattern::AddressBased,
+            Pattern::Zero,
+            Pattern::Ones,
+            Pattern::Alternating55,
+            Pattern::AlternatingAA,
+            Pattern::WalkingOnes(0),
+            Pattern::WalkingOnes(17),
+            Pattern::AddressBased,
         ];
         for p in patterns {
             let mut buf = vec![0u8; 4096 + 3]; // non-multiple of 8 to test tail

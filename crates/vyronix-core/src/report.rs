@@ -114,7 +114,9 @@ pub fn to_html(model: &ReportModel) -> String {
     html.push_str(".badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff}");
     html.push_str(".src{color:#9ca3af;font-size:12px}");
     html.push_str(".finding{border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin:8px 0;background:#fff}");
-    html.push_str(".finding h3{margin:0 0 6px;font-size:15px}.finding p{margin:4px 0;font-size:13px}");
+    html.push_str(
+        ".finding h3{margin:0 0 6px;font-size:15px}.finding p{margin:4px 0;font-size:13px}",
+    );
     html.push_str(".score{font-size:40px;font-weight:700}.muted{color:#6b7280}");
     html.push_str("footer{margin-top:32px;border-top:1px solid #e5e7eb;padding-top:12px;font-size:12px;color:#9ca3af}");
     html.push_str("@media print{body{background:#fff}.wrap{max-width:100%}}");
@@ -139,7 +141,11 @@ pub fn to_html(model: &ReportModel) -> String {
         ("Model", &model.device.model),
         ("Operating system", &model.device.os),
     ] {
-        html.push_str(&format!("<tr><th>{}</th><td>{}</td></tr>", escape_html(k), escape_html(v)));
+        html.push_str(&format!(
+            "<tr><th>{}</th><td>{}</td></tr>",
+            escape_html(k),
+            escape_html(v)
+        ));
     }
     html.push_str("</table>");
 
@@ -159,14 +165,24 @@ pub fn to_html(model: &ReportModel) -> String {
                     overall.included_count, overall.total_count
                 ));
             }
-            None => html.push_str("<div class=\"muted\">Insufficient measurable data for an overall score.</div>"),
+            None => html.push_str(
+                "<div class=\"muted\">Insufficient measurable data for an overall score.</div>",
+            ),
         }
-        html.push_str("<table><tr><th>Component</th><th>Score</th><th>Status</th><th>Rationale</th></tr>");
+        html.push_str(
+            "<table><tr><th>Component</th><th>Score</th><th>Status</th><th>Rationale</th></tr>",
+        );
         for c in &overall.components {
-            let score_txt = c.score.map(|s| format!("{s:.0}")).unwrap_or_else(|| "—".into());
+            let score_txt = c
+                .score
+                .map(|s| format!("{s:.0}"))
+                .unwrap_or_else(|| "—".into());
             html.push_str(&format!(
                 "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
-                escape_html(&c.label), escape_html(&score_txt), escape_html(c.severity.label()), escape_html(&c.rationale)
+                escape_html(&c.label),
+                escape_html(&score_txt),
+                escape_html(c.severity.label()),
+                escape_html(&c.rationale)
             ));
         }
         html.push_str("</table>");
@@ -179,7 +195,10 @@ pub fn to_html(model: &ReportModel) -> String {
         for e in &section.entries {
             html.push_str(&format!(
                 "<tr><td>{}</td><td>{}</td><td>{}</td><td class=\"src\">{}</td></tr>",
-                escape_html(&e.label), escape_html(&e.value), escape_html(&e.status), escape_html(&e.source)
+                escape_html(&e.label),
+                escape_html(&e.value),
+                escape_html(&e.status),
+                escape_html(&e.source)
             ));
         }
         html.push_str("</table>");
@@ -193,12 +212,27 @@ pub fn to_html(model: &ReportModel) -> String {
             html.push_str("<div class=\"finding\">");
             html.push_str(&format!(
                 "<h3>{} <span class=\"badge\" style=\"background:{}\">{}</span></h3>",
-                escape_html(&f.finding), color, escape_html(f.severity.label())
+                escape_html(&f.finding),
+                color,
+                escape_html(f.severity.label())
             ));
-            html.push_str(&format!("<p><strong>Evidence:</strong> {}</p>", escape_html(&f.evidence)));
-            html.push_str(&format!("<p><strong>Explanation:</strong> {}</p>", escape_html(&f.explanation)));
-            html.push_str(&format!("<p><strong>Recommendation:</strong> {}</p>", escape_html(&f.recommendation)));
-            html.push_str(&format!("<p class=\"src\">Source: {} &middot; Confidence: {:?}</p>", escape_html(&f.data_source), f.confidence));
+            html.push_str(&format!(
+                "<p><strong>Evidence:</strong> {}</p>",
+                escape_html(&f.evidence)
+            ));
+            html.push_str(&format!(
+                "<p><strong>Explanation:</strong> {}</p>",
+                escape_html(&f.explanation)
+            ));
+            html.push_str(&format!(
+                "<p><strong>Recommendation:</strong> {}</p>",
+                escape_html(&f.recommendation)
+            ));
+            html.push_str(&format!(
+                "<p class=\"src\">Source: {} &middot; Confidence: {:?}</p>",
+                escape_html(&f.data_source),
+                f.confidence
+            ));
             html.push_str("</div>");
         }
     }
@@ -209,7 +243,9 @@ pub fn to_html(model: &ReportModel) -> String {
         for r in &model.recommendations {
             html.push_str(&format!(
                 "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
-                escape_html(&r.use_case), escape_html(r.suitability.label()), escape_html(&r.rationale)
+                escape_html(&r.use_case),
+                escape_html(r.suitability.label()),
+                escape_html(&r.rationale)
             ));
         }
         html.push_str("</table>");
@@ -237,8 +273,11 @@ pub fn to_csv(model: &ReportModel) -> String {
         for e in &section.entries {
             out.push_str(&format!(
                 "{},{},{},{},{}\n",
-                escape_csv(&section.title), escape_csv(&e.label), escape_csv(&e.value),
-                escape_csv(&e.status), escape_csv(&e.source)
+                escape_csv(&section.title),
+                escape_csv(&e.label),
+                escape_csv(&e.value),
+                escape_csv(&e.status),
+                escape_csv(&e.source)
             ));
         }
     }
@@ -247,8 +286,11 @@ pub fn to_csv(model: &ReportModel) -> String {
         for f in &model.findings {
             out.push_str(&format!(
                 "{},{},{},{},{}\n",
-                escape_csv(&f.category), escape_csv(&f.finding), escape_csv(f.severity.label()),
-                escape_csv(&f.evidence), escape_csv(&f.recommendation)
+                escape_csv(&f.category),
+                escape_csv(&f.finding),
+                escape_csv(f.severity.label()),
+                escape_csv(&f.evidence),
+                escape_csv(&f.recommendation)
             ));
         }
     }
@@ -295,13 +337,22 @@ mod tests {
             sections: vec![ReportSection {
                 title: "Battery".into(),
                 entries: vec![ReportEntry {
-                    label: "Health".into(), value: "90%".into(),
-                    status: "Available".into(), source: "IOCTL".into(),
+                    label: "Health".into(),
+                    value: "90%".into(),
+                    status: "Available".into(),
+                    source: "IOCTL".into(),
                 }],
             }],
             findings: vec![Finding::new(
-                "battery_health", "Battery", "Battery health is good", Severity::Good,
-                "90%", "IOCTL", "explanation", "recommendation", Confidence::High,
+                "battery_health",
+                "Battery",
+                "Battery health is good",
+                Severity::Good,
+                "90%",
+                "IOCTL",
+                "explanation",
+                "recommendation",
+                Confidence::High,
             )],
             overall: None,
             recommendations: vec![],
@@ -353,7 +404,10 @@ mod tests {
     #[test]
     fn timestamp_format() {
         // 1_700_000_000_000 ms = 2023-11-14 22:13:20 UTC
-        assert_eq!(format_timestamp(1_700_000_000_000), "2023-11-14 22:13:20 UTC");
+        assert_eq!(
+            format_timestamp(1_700_000_000_000),
+            "2023-11-14 22:13:20 UTC"
+        );
         assert_eq!(format_timestamp(0), "1970-01-01 00:00:00 UTC");
     }
 

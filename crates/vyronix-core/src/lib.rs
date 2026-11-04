@@ -6,15 +6,15 @@
 //! rules and report serialization. All hardware collection lives in the
 //! Tauri backend and feeds real values into these types.
 
-pub mod model;
 pub mod battery;
-pub mod smart;
-pub mod scoring;
 pub mod bench;
-pub mod validation;
-pub mod recommend;
 pub mod diagnostics;
+pub mod model;
+pub mod recommend;
 pub mod report;
+pub mod scoring;
+pub mod smart;
+pub mod validation;
 
 pub use model::{Confidence, Measurement, Severity, Status};
 

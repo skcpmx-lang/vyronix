@@ -35,7 +35,10 @@ impl Status {
     /// Whether a concrete value is present and trustworthy enough to display
     /// as a number. Estimated values are present but must be labelled.
     pub fn has_value(self) -> bool {
-        matches!(self, Status::Available | Status::Verified | Status::Estimated)
+        matches!(
+            self,
+            Status::Available | Status::Verified | Status::Estimated
+        )
     }
 
     /// Whether this status represents a problem that should be surfaced.
@@ -120,7 +123,12 @@ pub struct Measurement<T> {
 }
 
 impl<T> Measurement<T> {
-    pub fn new(value: T, status: Status, confidence: Confidence, source: impl Into<String>) -> Self {
+    pub fn new(
+        value: T,
+        status: Status,
+        confidence: Confidence,
+        source: impl Into<String>,
+    ) -> Self {
         Self {
             value: Some(value),
             status,

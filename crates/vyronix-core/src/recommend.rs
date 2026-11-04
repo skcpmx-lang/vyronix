@@ -56,7 +56,9 @@ fn gib(bytes: u64) -> f64 {
 pub fn recommend(facts: &HardwareFacts) -> Vec<Recommendation> {
     let mut out = Vec::new();
     let ram_gib = facts.total_ram_bytes.map(gib);
-    let cores = facts.physical_cores.or(facts.logical_processors.map(|l| (l / 2).max(1)));
+    let cores = facts
+        .physical_cores
+        .or(facts.logical_processors.map(|l| (l / 2).max(1)));
     let threads = facts.logical_processors;
     let ssd = facts.storage_is_ssd;
 
@@ -103,9 +105,23 @@ pub fn recommend(facts: &HardwareFacts) -> Vec<Recommendation> {
     ));
 
     // Graphic design: RAM + SSD + dedicated GPU helpful.
-    out.push(design_video("Graphic design", facts, ram_gib, cores, 16.0, 4));
+    out.push(design_video(
+        "Graphic design",
+        facts,
+        ram_gib,
+        cores,
+        16.0,
+        4,
+    ));
     // Video editing: most demanding.
-    out.push(design_video("Video editing", facts, ram_gib, cores, 32.0, 8));
+    out.push(design_video(
+        "Video editing",
+        facts,
+        ram_gib,
+        cores,
+        32.0,
+        8,
+    ));
 
     // Gaming: dedicated GPU is the primary gate.
     out.push(gaming(facts, ram_gib, threads));
@@ -125,9 +141,25 @@ fn general(
     match (ram_gib, cores) {
         (Some(ram), Some(c)) => {
             let mut score = 0i32;
-            if ram >= good_ram { score += 1; } else if ram >= good_ram / 2.0 { score += 0; } else { score -= 1; }
-            if c >= good_cores { score += 1; } else if c >= good_cores / 2 { score += 0; } else { score -= 1; }
-            if ssd == Some(true) { score += 1; } else if ssd == Some(false) { score -= 1; }
+            if ram >= good_ram {
+                score += 1;
+            } else if ram >= good_ram / 2.0 {
+                score += 0;
+            } else {
+                score -= 1;
+            }
+            if c >= good_cores {
+                score += 1;
+            } else if c >= good_cores / 2 {
+                score += 0;
+            } else {
+                score -= 1;
+            }
+            if ssd == Some(true) {
+                score += 1;
+            } else if ssd == Some(false) {
+                score -= 1;
+            }
             let suitability = match score {
                 s if s >= 2 => Suitability::WellSuited,
                 s if s >= 0 => Suitability::Adequate,
@@ -139,28 +171,57 @@ fn general(
                 suitability,
                 rationale: format!(
                     "{desc}. Based on {ram:.1} GiB RAM, {c} cores, {}.",
-                    match ssd { Some(true) => "SSD storage", Some(false) => "HDD storage", None => "storage type unknown" }
+                    match ssd {
+                        Some(true) => "SSD storage",
+                        Some(false) => "HDD storage",
+                        None => "storage type unknown",
+                    }
                 ),
             }
         }
         _ => Recommendation {
             use_case: name.into(),
             suitability: Suitability::Unknown,
-            rationale: format!("{desc}. RAM or core count was not available, so no verdict is given."),
+            rationale: format!(
+                "{desc}. RAM or core count was not available, so no verdict is given."
+            ),
         },
     }
 }
 
-fn design_video(name: &str, facts: &HardwareFacts, ram_gib: Option<f64>, cores: Option<u32>, good_ram: f64, good_cores: u32) -> Recommendation {
+fn design_video(
+    name: &str,
+    facts: &HardwareFacts,
+    ram_gib: Option<f64>,
+    cores: Option<u32>,
+    good_ram: f64,
+    good_cores: u32,
+) -> Recommendation {
     match (ram_gib, cores) {
         (Some(ram), Some(c)) => {
             let gpu_bonus = facts.gpu_dedicated == Some(true);
             let ssd = facts.storage_is_ssd == Some(true);
             let mut score = 0i32;
-            if ram >= good_ram { score += 1; } else if ram >= good_ram / 2.0 { score += 0; } else { score -= 1; }
-            if c >= good_cores { score += 1; } else { score -= 1; }
-            if gpu_bonus { score += 1; }
-            if ssd { score += 1; } else { score -= 1; }
+            if ram >= good_ram {
+                score += 1;
+            } else if ram >= good_ram / 2.0 {
+                score += 0;
+            } else {
+                score -= 1;
+            }
+            if c >= good_cores {
+                score += 1;
+            } else {
+                score -= 1;
+            }
+            if gpu_bonus {
+                score += 1;
+            }
+            if ssd {
+                score += 1;
+            } else {
+                score -= 1;
+            }
             let suitability = match score {
                 s if s >= 3 => Suitability::WellSuited,
                 s if s >= 1 => Suitability::Adequate,
@@ -250,7 +311,10 @@ mod tests {
         };
         let recs = recommend(&facts);
         let video = recs.iter().find(|r| r.use_case == "Video editing").unwrap();
-        assert!(matches!(video.suitability, Suitability::Limited | Suitability::NotRecommended));
+        assert!(matches!(
+            video.suitability,
+            Suitability::Limited | Suitability::NotRecommended
+        ));
         let gaming = recs.iter().find(|r| r.use_case == "Gaming").unwrap();
         assert_eq!(gaming.suitability, Suitability::Limited);
     }
@@ -260,7 +324,12 @@ mod tests {
         let facts = HardwareFacts::default();
         let recs = recommend(&facts);
         for r in &recs {
-            assert_eq!(r.suitability, Suitability::Unknown, "{} should be unknown", r.use_case);
+            assert_eq!(
+                r.suitability,
+                Suitability::Unknown,
+                "{} should be unknown",
+                r.use_case
+            );
         }
     }
 

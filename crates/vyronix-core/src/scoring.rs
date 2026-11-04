@@ -94,8 +94,16 @@ pub fn compute_overall(components: Vec<ComponentScore>) -> OverallScore {
         }
     }
 
-    let coverage = if total_weight > 0.0 { included_weight / total_weight } else { 0.0 };
-    let score = if included_weight > 0.0 { Some(weighted_sum / included_weight) } else { None };
+    let coverage = if total_weight > 0.0 {
+        included_weight / total_weight
+    } else {
+        0.0
+    };
+    let score = if included_weight > 0.0 {
+        Some(weighted_sum / included_weight)
+    } else {
+        None
+    };
 
     let confidence = if included_count == 0 {
         ScoreConfidence::Insufficient
@@ -118,7 +126,13 @@ pub fn compute_overall(components: Vec<ComponentScore>) -> OverallScore {
 }
 
 /// Helper to build a component score from a severity.
-pub fn component(id: &str, label: &str, weight: f64, sev: Severity, rationale: &str) -> ComponentScore {
+pub fn component(
+    id: &str,
+    label: &str,
+    weight: f64,
+    sev: Severity,
+    rationale: &str,
+) -> ComponentScore {
     let score = severity_to_score(sev);
     ComponentScore {
         id: id.into(),
@@ -139,7 +153,13 @@ mod tests {
     fn unsupported_excluded_from_denominator() {
         let comps = vec![
             component("battery", "Battery", 2.0, Severity::Good, "90% health"),
-            component("storage", "Storage", 3.0, Severity::Unknown, "SMART unavailable"),
+            component(
+                "storage",
+                "Storage",
+                3.0,
+                Severity::Unknown,
+                "SMART unavailable",
+            ),
         ];
         let overall = compute_overall(comps);
         // Only battery counts: score must be 100, not (100+100)/2 diluted by storage.
@@ -192,7 +212,11 @@ mod tests {
         let mk = |cov_good: usize, total: usize| {
             let mut comps = Vec::new();
             for i in 0..total {
-                let sev = if i < cov_good { Severity::Good } else { Severity::Unknown };
+                let sev = if i < cov_good {
+                    Severity::Good
+                } else {
+                    Severity::Unknown
+                };
                 comps.push(component(&format!("c{i}"), "C", 1.0, sev, ""));
             }
             compute_overall(comps)

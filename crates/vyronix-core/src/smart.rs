@@ -66,7 +66,11 @@ pub fn parse_nvme_health(buf: &[u8]) -> Option<NvmeHealth> {
     };
 
     let kelvin = le16(1);
-    let temperature_c = if kelvin == 0 { None } else { Some(kelvin as f64 - 273.15) };
+    let temperature_c = if kelvin == 0 {
+        None
+    } else {
+        Some(kelvin as f64 - 273.15)
+    };
 
     Some(NvmeHealth {
         critical_warning: buf[0],
@@ -90,12 +94,24 @@ pub fn parse_nvme_health(buf: &[u8]) -> Option<NvmeHealth> {
 /// Interpret the NVMe critical-warning byte into human-readable flags.
 pub fn nvme_critical_flags(byte: u8) -> Vec<&'static str> {
     let mut flags = Vec::new();
-    if byte & 0x01 != 0 { flags.push("Available spare below threshold"); }
-    if byte & 0x02 != 0 { flags.push("Temperature above/below threshold"); }
-    if byte & 0x04 != 0 { flags.push("NVM subsystem reliability degraded"); }
-    if byte & 0x08 != 0 { flags.push("Media placed in read-only mode"); }
-    if byte & 0x10 != 0 { flags.push("Volatile memory backup device failed"); }
-    if byte & 0x20 != 0 { flags.push("Persistent memory region unreliable"); }
+    if byte & 0x01 != 0 {
+        flags.push("Available spare below threshold");
+    }
+    if byte & 0x02 != 0 {
+        flags.push("Temperature above/below threshold");
+    }
+    if byte & 0x04 != 0 {
+        flags.push("NVM subsystem reliability degraded");
+    }
+    if byte & 0x08 != 0 {
+        flags.push("Media placed in read-only mode");
+    }
+    if byte & 0x10 != 0 {
+        flags.push("Volatile memory backup device failed");
+    }
+    if byte & 0x20 != 0 {
+        flags.push("Persistent memory region unreliable");
+    }
     flags
 }
 
@@ -114,7 +130,9 @@ pub fn nvme_severity(h: &NvmeHealth) -> Severity {
     if h.percentage_used >= 100 {
         return Severity::Warning;
     }
-    if h.percentage_used >= 90 || h.available_spare_pct <= h.available_spare_threshold_pct.saturating_add(10) {
+    if h.percentage_used >= 90
+        || h.available_spare_pct <= h.available_spare_threshold_pct.saturating_add(10)
+    {
         return Severity::Information;
     }
     Severity::Good
@@ -148,13 +166,18 @@ pub fn ata_severity(attrs: &[AtaAttribute]) -> (Severity, Vec<String>) {
         // Vendor threshold breach on the normalized value (when defined).
         if a.threshold > 0 && a.current <= a.threshold {
             worst = Severity::Critical;
-            notes.push(format!("{} (id {}) normalized value {} ≤ vendor threshold {}", a.name, a.id, a.current, a.threshold));
+            notes.push(format!(
+                "{} (id {}) normalized value {} ≤ vendor threshold {}",
+                a.name, a.id, a.current, a.threshold
+            ));
         }
         match a.id {
             ata_ids::REALLOCATED_SECTOR if a.raw > 0 => {
                 worst = worst.max_by_rank(Severity::Warning);
                 notes.push(format!("Reallocated sectors: {}", a.raw));
-                if a.raw > 100 { worst = Severity::Critical; }
+                if a.raw > 100 {
+                    worst = Severity::Critical;
+                }
             }
             ata_ids::CURRENT_PENDING_SECTOR if a.raw > 0 => {
                 worst = Severity::Critical;
@@ -181,7 +204,10 @@ pub fn ata_severity(attrs: &[AtaAttribute]) -> (Severity, Vec<String>) {
     }
 
     if !any {
-        return (Severity::Unknown, vec!["No SMART attributes were available.".into()]);
+        return (
+            Severity::Unknown,
+            vec!["No SMART attributes were available.".into()],
+        );
     }
     (worst, notes)
 }
@@ -189,7 +215,11 @@ pub fn ata_severity(attrs: &[AtaAttribute]) -> (Severity, Vec<String>) {
 impl Severity {
     /// Return the more severe of self and other (helper for accumulation).
     pub fn max_by_rank(self, other: Severity) -> Severity {
-        if other.rank() > self.rank() { other } else { self }
+        if other.rank() > self.rank() {
+            other
+        } else {
+            self
+        }
     }
 }
 
@@ -209,7 +239,10 @@ pub fn ata_temperature(attrs: &[AtaAttribute]) -> Option<f64> {
 
 /// Extract power-on hours from ATA attribute id 9 (raw hours for most drives).
 pub fn ata_power_on_hours(attrs: &[AtaAttribute]) -> Option<u64> {
-    attrs.iter().find(|a| a.id == ata_ids::POWER_ON_HOURS).map(|a| a.raw)
+    attrs
+        .iter()
+        .find(|a| a.id == ata_ids::POWER_ON_HOURS)
+        .map(|a| a.raw)
 }
 
 #[cfg(test)]
@@ -217,18 +250,27 @@ mod tests {
     use super::*;
 
     fn attr(id: u8, current: u8, worst: u8, threshold: u8, raw: u64) -> AtaAttribute {
-        AtaAttribute { id, name: format!("attr_{id}"), current, worst, threshold, raw }
+        AtaAttribute {
+            id,
+            name: format!("attr_{id}"),
+            current,
+            worst,
+            threshold,
+            raw,
+        }
     }
 
     #[test]
     fn nvme_parse_minimal() {
         let mut buf = vec![0u8; 512];
-        buf[0] = 0;                 // no critical warning
-        buf[1] = 0x3D; buf[2] = 0x01; // 317 K = 43.85 C
-        buf[3] = 100;               // available spare
-        buf[4] = 10;                // spare threshold
-        buf[5] = 3;                 // percentage used
-        buf[128] = 0xE8; buf[129] = 0x03; // 1000 power-on hours
+        buf[0] = 0; // no critical warning
+        buf[1] = 0x3D;
+        buf[2] = 0x01; // 317 K = 43.85 C
+        buf[3] = 100; // available spare
+        buf[4] = 10; // spare threshold
+        buf[5] = 3; // percentage used
+        buf[128] = 0xE8;
+        buf[129] = 0x03; // 1000 power-on hours
         let h = parse_nvme_health(&buf).unwrap();
         assert_eq!(h.critical_warning, 0);
         assert!((h.temperature_c.unwrap() - 43.85).abs() < 0.01);
@@ -254,16 +296,20 @@ mod tests {
     fn nvme_critical_warning_is_critical() {
         let mut buf = vec![0u8; 512];
         buf[0] = 0x04; // reliability degraded
-        buf[3] = 100; buf[4] = 10;
+        buf[3] = 100;
+        buf[4] = 10;
         let h = parse_nvme_health(&buf).unwrap();
         assert_eq!(nvme_severity(&h), Severity::Critical);
-        assert!(nvme_critical_flags(h.critical_warning).contains(&"NVM subsystem reliability degraded"));
+        assert!(
+            nvme_critical_flags(h.critical_warning).contains(&"NVM subsystem reliability degraded")
+        );
     }
 
     #[test]
     fn nvme_spare_below_threshold_critical() {
         let mut buf = vec![0u8; 512];
-        buf[3] = 5; buf[4] = 10;
+        buf[3] = 5;
+        buf[4] = 10;
         let h = parse_nvme_health(&buf).unwrap();
         assert_eq!(nvme_severity(&h), Severity::Critical);
     }
@@ -271,7 +317,9 @@ mod tests {
     #[test]
     fn nvme_healthy_is_good() {
         let mut buf = vec![0u8; 512];
-        buf[3] = 100; buf[4] = 10; buf[5] = 1;
+        buf[3] = 100;
+        buf[4] = 10;
+        buf[5] = 1;
         let h = parse_nvme_health(&buf).unwrap();
         assert_eq!(nvme_severity(&h), Severity::Good);
     }
@@ -279,7 +327,9 @@ mod tests {
     #[test]
     fn nvme_media_errors_warning() {
         let mut buf = vec![0u8; 512];
-        buf[3] = 100; buf[4] = 10; buf[5] = 1;
+        buf[3] = 100;
+        buf[4] = 10;
+        buf[5] = 1;
         buf[160] = 2; // media errors
         let h = parse_nvme_health(&buf).unwrap();
         assert_eq!(nvme_severity(&h), Severity::Warning);
