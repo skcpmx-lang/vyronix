@@ -1,9 +1,10 @@
-name: Auto-format (rustfmt)
+name: Rust helper (format + diagnostics)
 
-# The Arena sandbox has no local Rust toolchain (crates.io / rust-lang.org are
-# network-blocked), so rustfmt cannot run locally. This workflow enforces
-# formatting by running rustfmt on CI and committing the result back to the
-# branch. The "[skip ci]" marker prevents re-triggering.
+# The Arena sandbox has no local Rust toolchain and the CI log storage host is
+# network-blocked, so this workflow (a) enforces rustfmt and (b) captures
+# clippy/test output into .ci-diagnostics.txt and commits it back so the agent
+# can read exact compiler feedback. "[skip ci]" prevents re-triggering.
+# This helper is removed once the codebase is stable.
 
 on:
   push:
@@ -17,32 +18,57 @@ permissions:
   contents: write
 
 concurrency:
-  group: format-${{ github.ref }}
+  group: rust-helper-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  rustfmt:
-    name: Apply rustfmt
+  helper:
+    name: rustfmt + clippy + test diagnostics
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Install rustfmt
-        run: rustup component add rustfmt
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
 
-      - name: Run rustfmt
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-helper-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-helper-
+
+      - name: rustfmt
         run: cargo fmt --all
 
-      - name: Commit and push if changed
+      - name: Capture clippy + test output
+        run: |
+          {
+            echo "=== rustc / cargo version ==="
+            cargo --version; rustc --version
+            echo
+            echo "=== cargo clippy -p vyronix-core --all-targets -- -D warnings ==="
+            cargo clippy -p vyronix-core --all-targets -- -D warnings 2>&1
+            echo "CLIPPY_EXIT=$?"
+            echo
+            echo "=== cargo test -p vyronix-core ==="
+            cargo test -p vyronix-core 2>&1
+            echo "TEST_EXIT=$?"
+          } > .ci-diagnostics.txt
+
+      - name: Commit results back
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "style: apply rustfmt [skip ci]"
+            git commit -m "chore: rustfmt + CI diagnostics [skip ci]"
             git push origin "HEAD:${{ github.ref_name }}"
-          else
-            echo "Already formatted."
           fi

@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --vx-bg: #f4f6fb;
+  --vx-panel: #ffffff;
+  --vx-border: #e3e8f0;
+  --vx-text: #0f172a;
+  --vx-muted: #64748b;
+}
+
+.dark {
+  --vx-bg: #070b14;
+  --vx-panel: #0d1424;
+  --vx-border: #1c2740;
+  --vx-text: #e6edf7;
+  --vx-muted: #8b9bb8;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--vx-bg);
+  color: var(--vx-text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Custom scrollbars for a premium desktop feel. */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--vx-muted) 35%, transparent);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--vx-muted) 55%, transparent);
+  background-clip: content-box;
+}
+
+@layer components {
+  .vx-panel {
+    @apply rounded-xl border bg-[var(--vx-panel)] border-[var(--vx-border)] shadow-card;
+  }
+  .vx-input {
+    @apply w-full rounded-lg border border-[var(--vx-border)] bg-transparent px-3 py-2 text-sm
+      outline-none focus:border-vx-500 focus:ring-2 focus:ring-vx-500/30 transition;
+  }
+  .vx-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
+      transition select-none disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .vx-btn-primary {
+    @apply vx-btn bg-vx-600 text-white hover:bg-vx-500 active:bg-vx-700 shadow-glow;
+  }
+  .vx-btn-ghost {
+    @apply vx-btn border border-[var(--vx-border)] hover:bg-vx-500/10 active:bg-vx-500/20;
+  }
+  .vx-label {
+    @apply text-xs uppercase tracking-wider text-[var(--vx-muted)] font-semibold;
+  }
+}
+
+/* Reduced motion: honor OS preference and the in-app animations toggle. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.no-animations *, .no-animations *::before, .no-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Full-screen display test must cover everything. */
+.display-test-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  cursor: none;
+}
