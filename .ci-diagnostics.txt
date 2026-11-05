@@ -4,19 +4,18 @@ rustc 1.99.1 (58cf8f9c3 2026-10-13)
 
 === cargo clippy -p vyronix-core --all-targets -- -D warnings ===
     Checking vyronix-core v0.1.0 (/home/runner/work/vyronix/vyronix/crates/vyronix-core)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.98s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.37s
 CLIPPY_EXIT=0
 
 === cargo test -p vyronix-core ===
    Compiling vyronix-core v0.1.0 (/home/runner/work/vyronix/vyronix/crates/vyronix-core)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.63s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.23s
      Running unittests src/lib.rs (target/debug/deps/vyronix_core-5773c01876455af2)
 
 running 72 tests
 test battery::tests::above_design_reported_not_clamped ... ok
 test battery::tests::health_measurement_unavailable_when_missing ... ok
 test battery::tests::implausible_design_is_anomaly ... ok
-test battery::tests::implausible_health_is_anomaly_not_clamped ... ok
 test battery::tests::missing_design_not_computable ... ok
 test battery::tests::missing_full_not_computable ... ok
 test battery::tests::normal_health ... ok
@@ -26,16 +25,18 @@ test battery::tests::wear_never_negative_in_ok_case ... ok
 test battery::tests::zero_design_not_computable ... ok
 test battery::tests::zero_full_not_computable ... ok
 test bench::tests::checksum_stable_and_sensitive ... ok
+test battery::tests::implausible_health_is_anomaly_not_clamped ... ok
 test bench::tests::empty_buffer_verify ... ok
-test bench::tests::integer_workload_zero_iterations ... ok
 test bench::tests::float_workload_deterministic_and_finite ... ok
+test bench::tests::integer_workload_zero_iterations ... ok
 test bench::tests::integer_workload_deterministic ... ok
-test bench::tests::pattern_fill_verify_roundtrip_all_patterns ... ok
 test bench::tests::verify_detects_corruption ... ok
+test bench::tests::pattern_fill_verify_roundtrip_all_patterns ... ok
 test bench::tests::walking_ones_varies ... ok
 test diagnostics::tests::critical_storage_sorts_first ... ok
 test diagnostics::tests::every_finding_has_required_fields ... ok
 test diagnostics::tests::failed_tests_critical ... ok
+test diagnostics::tests::good_battery ... ok
 test diagnostics::tests::temp_thresholds ... ok
 test diagnostics::tests::temp_unavailable_is_unknown ... ok
 test diagnostics::tests::unknown_battery_not_good ... ok
@@ -47,21 +48,21 @@ test model::tests::status_value_presence ... ok
 test model::tests::unknown_is_not_good ... ok
 test recommend::tests::all_seven_use_cases_present ... ok
 test recommend::tests::missing_facts_unknown_not_guessed ... ok
-test diagnostics::tests::good_battery ... ok
+test recommend::tests::rationale_cites_actual_values ... ok
 test recommend::tests::strong_machine_well_suited ... ok
 test recommend::tests::weak_machine_limited ... ok
 test report::tests::csv_escapes_commas_and_quotes ... ok
 test report::tests::csv_output_has_header_and_rows ... ok
-test recommend::tests::rationale_cites_actual_values ... ok
 test report::tests::html_contains_branding_and_sections ... ok
 test report::tests::html_escapes_injection ... ok
 test report::tests::timestamp_format ... ok
-test report::tests::sensitive_note_present_when_excluded ... ok
-test report::tests::json_roundtrip ... ok
+test scoring::tests::all_unknown_yields_no_score ... ok
 test scoring::tests::coverage_confidence_tiers ... ok
+test report::tests::json_roundtrip ... ok
 test scoring::tests::empty_components_insufficient ... ok
-test scoring::tests::unknown_never_awarded_points ... ok
+test report::tests::sensitive_note_present_when_excluded ... ok
 test scoring::tests::serialization_roundtrip ... ok
+test scoring::tests::unknown_never_awarded_points ... ok
 test scoring::tests::unsupported_excluded_from_denominator ... ok
 test scoring::tests::weighted_average_correct ... ok
 test smart::tests::ata_empty_is_unknown_not_good ... ok
@@ -82,7 +83,6 @@ test validation::tests::clean_text_rejects_control_and_length ... ok
 test validation::tests::export_path_rejects_nul ... ok
 test validation::tests::export_path_rejects_traversal ... ok
 test validation::tests::poll_interval_bounds ... ok
-test scoring::tests::all_unknown_yields_no_score ... ok
 test validation::tests::range_accepts_and_rejects ... ok
 test validation::tests::storage_size_bounds ... ok
 
