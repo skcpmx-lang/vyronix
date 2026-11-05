@@ -41,12 +41,17 @@ pub fn query_json(namespace: Option<&str>, query: &str) -> Result<Vec<WmiRow>, S
     }
     .map_err(|e| format!("WMI connection failed: {e}"))?;
 
-    let rows: Vec<HashMap<String, Variant>> =
-        con.raw_query(query).map_err(|e| format!("WMI query failed: {e}"))?;
+    let rows: Vec<HashMap<String, Variant>> = con
+        .raw_query(query)
+        .map_err(|e| format!("WMI query failed: {e}"))?;
 
     Ok(rows
         .into_iter()
-        .map(|row| row.into_iter().map(|(k, v)| (k, variant_to_json(&v))).collect())
+        .map(|row| {
+            row.into_iter()
+                .map(|(k, v)| (k, variant_to_json(&v)))
+                .collect()
+        })
         .collect())
 }
 
@@ -67,7 +72,9 @@ pub fn get_str(row: &WmiRow, key: &str) -> Option<String> {
 
 pub fn get_u64(row: &WmiRow, key: &str) -> Option<u64> {
     match row.get(key) {
-        Some(serde_json::Value::Number(n)) => n.as_u64().or_else(|| n.as_f64().map(|f| f.max(0.0) as u64)),
+        Some(serde_json::Value::Number(n)) => {
+            n.as_u64().or_else(|| n.as_f64().map(|f| f.max(0.0) as u64))
+        }
         Some(serde_json::Value::String(s)) => s.trim().parse::<u64>().ok(),
         _ => None,
     }

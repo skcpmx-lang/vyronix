@@ -20,8 +20,15 @@ pub fn network_adapters() -> Vec<NetworkAdapter> {
 fn join_array(row: &super::wmi::WmiRow, key: &str) -> Option<String> {
     match row.get(key) {
         Some(serde_json::Value::Array(arr)) => {
-            let parts: Vec<String> = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
-            if parts.is_empty() { None } else { Some(parts.join(", ")) }
+            let parts: Vec<String> = arr
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect();
+            if parts.is_empty() {
+                None
+            } else {
+                Some(parts.join(", "))
+            }
         }
         Some(serde_json::Value::String(s)) if !s.is_empty() => Some(s.clone()),
         _ => None,
@@ -38,34 +45,55 @@ fn windows_impl() -> Vec<NetworkAdapter> {
         Err(_) => return Vec::new(),
     };
     let configs = wmi::cimv2("SELECT Index, IPAddress, DNSServerSearchOrder FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled=True").unwrap_or_default();
-    let cfg_by_index: HashMap<u64, wmi::WmiRow> = configs.into_iter()
+    let cfg_by_index: HashMap<u64, wmi::WmiRow> = configs
+        .into_iter()
         .filter_map(|r| wmi::get_u64(&r, "Index").map(|i| (i, r)))
         .collect();
 
-    adapters.into_iter().map(|a| {
-        let index = wmi::get_u64(&a, "Index");
-        let cfg = index.and_then(|i| cfg_by_index.get(&i));
-        let s = |key: &str| wmi::get_str(&a, key).map(|v| Measurement::available(v, WMI)).unwrap_or_else(|| Measurement::unavailable(WMI, "Not reported."));
+    adapters
+        .into_iter()
+        .map(|a| {
+            let index = wmi::get_u64(&a, "Index");
+            let cfg = index.and_then(|i| cfg_by_index.get(&i));
+            let s = |key: &str| {
+                wmi::get_str(&a, key)
+                    .map(|v| Measurement::available(v, WMI))
+                    .unwrap_or_else(|| Measurement::unavailable(WMI, "Not reported."))
+            };
 
-        let speed = wmi::get_u64(&a, "Speed").filter(|v| *v > 0)
-            .map(|v| Measurement::available(v / 1_000_000, WMI))
-            .unwrap_or_else(|| Measurement::unavailable(WMI, "Link speed not reported."));
-        let connected = wmi::get_u64(&a, "NetConnectionStatus")
-            .map(|v| Measurement::available(v == 2, WMI))
-            .unwrap_or_else(|| Measurement::unavailable(WMI, "Connection status not reported."));
-        let ips = cfg.and_then(|c| join_array(c, "IPAddress"))
-            .map(|v| Measurement::available(v, WMI))
-            .unwrap_or_else(|| Measurement::unavailable(WMI, "No IP configuration."));
-        let dns = cfg.and_then(|c| join_array(c, "DNSServerSearchOrder"))
-            .map(|v| Measurement::available(v, WMI))
-            .unwrap_or_else(|| Measurement::unavailable(WMI, "No DNS servers configured."));
+            let speed = wmi::get_u64(&a, "Speed")
+                .filter(|v| *v > 0)
+                .map(|v| Measurement::available(v / 1_000_000, WMI))
+                .unwrap_or_else(|| Measurement::unavailable(WMI, "Link speed not reported."));
+            let connected = wmi::get_u64(&a, "NetConnectionStatus")
+                .map(|v| Measurement::available(v == 2, WMI))
+                .unwrap_or_else(|| {
+                    Measurement::unavailable(WMI, "Connection status not reported.")
+                });
+            let ips = cfg
+                .and_then(|c| join_array(c, "IPAddress"))
+                .map(|v| Measurement::available(v, WMI))
+                .unwrap_or_else(|| Measurement::unavailable(WMI, "No IP configuration."));
+            let dns = cfg
+                .and_then(|c| join_array(c, "DNSServerSearchOrder"))
+                .map(|v| Measurement::available(v, WMI))
+                .unwrap_or_else(|| Measurement::unavailable(WMI, "No DNS servers configured."));
 
-        NetworkAdapter {
-            name: s("Name"), adapter_type: s("AdapterType"), mac_address: s("MACAddress"),
-            ip_addresses: ips, link_speed_mbps: speed, connected, dns_servers: dns,
-            signal_pct: Measurement::unsupported("WLAN API", "Wi-Fi signal strength requires the WLAN API; not exposed by WMI."),
-        }
-    }).collect()
+            NetworkAdapter {
+                name: s("Name"),
+                adapter_type: s("AdapterType"),
+                mac_address: s("MACAddress"),
+                ip_addresses: ips,
+                link_speed_mbps: speed,
+                connected,
+                dns_servers: dns,
+                signal_pct: Measurement::unsupported(
+                    "WLAN API",
+                    "Wi-Fi signal strength requires the WLAN API; not exposed by WMI.",
+                ),
+            }
+        })
+        .collect()
 }
 
 /// ICMP echo using the Windows IP Helper API. Read-only network operation.
@@ -86,7 +114,9 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
     use std::ffi::CString;
     use windows::core::PCSTR;
     use windows::Win32::Foundation::{HANDLE, INVALID_HANDLE_VALUE};
-    use windows::Win32::NetworkManagement::IpHelper::{IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho, ICMP_ECHO_REPLY};
+    use windows::Win32::NetworkManagement::IpHelper::{
+        IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho, ICMP_ECHO_REPLY,
+    };
     use windows::Win32::Networking::WinSock::inet_addr;
 
     let count = count.clamp(1, 20);
@@ -132,7 +162,11 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
     unsafe { IcmpCloseHandle(handle) };
 
     let transmitted = count;
-    let loss_pct = if transmitted > 0 { ((transmitted - received) as f64 / transmitted as f64) * 100.0 } else { 0.0 };
+    let loss_pct = if transmitted > 0 {
+        ((transmitted - received) as f64 / transmitted as f64) * 100.0
+    } else {
+        0.0
+    };
     let (min, avg, max) = if rtts.is_empty() {
         (None, None, None)
     } else {
@@ -142,5 +176,13 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
         (Some(min), Some(avg), Some(max))
     };
 
-    Ok(PingResult { host: host.to_string(), transmitted, received, loss_pct, min_ms: min, avg_ms: avg, max_ms: max })
+    Ok(PingResult {
+        host: host.to_string(),
+        transmitted,
+        received,
+        loss_pct,
+        min_ms: min,
+        avg_ms: avg,
+        max_ms: max,
+    })
 }

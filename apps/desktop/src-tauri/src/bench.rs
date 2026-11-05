@@ -21,7 +21,9 @@ fn cpu_worker(deadline: Instant, stop: &AtomicBool) -> (u64, u64) {
     let mut f: f64 = 1.000_001;
     while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
         for _ in 0..2000 {
-            x = x.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            x = x
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             x ^= x >> 13;
             x = x.rotate_left(7);
             f = f * 1.000_000_1 + 0.000_000_1;
@@ -48,7 +50,10 @@ pub fn cpu_benchmark(duration_secs: u64) -> CpuBenchResult {
 
     // Multi core (bounded thread count). Each worker owns an Arc clone so the
     // spawned closures are 'static.
-    let threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).min(64) as u32;
+    let threads = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1)
+        .min(64) as u32;
     let start = Instant::now();
     let deadline = start + Duration::from_secs(duration);
     let mut handles = Vec::new();
@@ -140,7 +145,10 @@ pub fn memory_benchmark(size_mib: u64) -> MemoryBenchResult {
 struct Lcg(u64);
 impl Lcg {
     fn next(&mut self) -> u64 {
-        self.0 = self.0.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.0 = self
+            .0
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         self.0
     }
 }
@@ -154,7 +162,11 @@ pub fn storage_benchmark(path: &str, size_mib: u64) -> Result<StorageBenchResult
     // Free-space guard: require 1.5x the test size before writing anything.
     let free = fs2::available_space(dir).map_err(|e| format!("Could not check free space: {e}"))?;
     if free < size + size / 2 {
-        return Err(format!("Insufficient free space: need ~{} MiB (with safety margin), only {} MiB available.", (size + size / 2) / MIB, free / MIB));
+        return Err(format!(
+            "Insufficient free space: need ~{} MiB (with safety margin), only {} MiB available.",
+            (size + size / 2) / MIB,
+            free / MIB
+        ));
     }
 
     let file_path = dir.join(format!("vyronix_bench_{}.tmp", now_ms()));
@@ -174,10 +186,12 @@ fn run_storage_bench(file_path: &std::path::Path, size: u64) -> Result<StorageBe
     let chunks = (size / chunk as u64) as usize;
 
     // Sequential write.
-    let mut file = std::fs::File::create(file_path).map_err(|e| format!("Cannot create test file: {e}"))?;
+    let mut file =
+        std::fs::File::create(file_path).map_err(|e| format!("Cannot create test file: {e}"))?;
     let write_start = Instant::now();
     for _ in 0..chunks {
-        file.write_all(&data).map_err(|e| format!("Write failed: {e}"))?;
+        file.write_all(&data)
+            .map_err(|e| format!("Write failed: {e}"))?;
     }
     file.sync_all().map_err(|e| format!("Sync failed: {e}"))?;
     let write_elapsed = write_start.elapsed().as_secs_f64();
@@ -187,7 +201,8 @@ fn run_storage_bench(file_path: &std::path::Path, size: u64) -> Result<StorageBe
     let mut rbuf = vec![0u8; chunk];
     let read_start = Instant::now();
     for _ in 0..chunks {
-        file.read_exact(&mut rbuf).map_err(|e| format!("Read failed: {e}"))?;
+        file.read_exact(&mut rbuf)
+            .map_err(|e| format!("Read failed: {e}"))?;
     }
     let read_elapsed = read_start.elapsed().as_secs_f64();
     black_box(&rbuf);
@@ -201,7 +216,11 @@ fn run_storage_bench(file_path: &std::path::Path, size: u64) -> Result<StorageBe
 
     let rr_start = Instant::now();
     for _ in 0..ops {
-        let off = if max_offset > 0 { lcg.next() % max_offset } else { 0 };
+        let off = if max_offset > 0 {
+            lcg.next() % max_offset
+        } else {
+            0
+        };
         file.seek(SeekFrom::Start(off)).map_err(|e| e.to_string())?;
         file.read_exact(&mut block_buf).map_err(|e| e.to_string())?;
     }
@@ -209,7 +228,11 @@ fn run_storage_bench(file_path: &std::path::Path, size: u64) -> Result<StorageBe
 
     let rw_start = Instant::now();
     for _ in 0..ops {
-        let off = if max_offset > 0 { lcg.next() % max_offset } else { 0 };
+        let off = if max_offset > 0 {
+            lcg.next() % max_offset
+        } else {
+            0
+        };
         file.seek(SeekFrom::Start(off)).map_err(|e| e.to_string())?;
         file.write_all(&block_buf).map_err(|e| e.to_string())?;
     }
@@ -254,11 +277,23 @@ pub fn memory_test(size_mib: u64) -> MemoryTestResult {
     for (name, pattern) in &patterns {
         // Write pattern.
         for (i, v) in buf.iter_mut().enumerate() {
-            *v = if *name == "address" { i as u64 } else if *name == "walking_ones" { 1u64 << (i % 64) } else { *pattern };
+            *v = if *name == "address" {
+                i as u64
+            } else if *name == "walking_ones" {
+                1u64 << (i % 64)
+            } else {
+                *pattern
+            };
         }
         // Verify.
         for (i, &v) in buf.iter().enumerate() {
-            let expected = if *name == "address" { i as u64 } else if *name == "walking_ones" { 1u64 << (i % 64) } else { *pattern };
+            let expected = if *name == "address" {
+                i as u64
+            } else if *name == "walking_ones" {
+                1u64 << (i % 64)
+            } else {
+                *pattern
+            };
             if v != expected {
                 errors += 1;
                 if first_error.is_none() {
@@ -315,7 +350,11 @@ impl Default for StressController {
 }
 
 /// Spawn the stress worker. Returns immediately; status is polled separately.
-pub fn start_stress(ctrl: &std::sync::Arc<StressController>, duration_secs: u64, temp_limit_c: f32) -> Result<(), String> {
+pub fn start_stress(
+    ctrl: &std::sync::Arc<StressController>,
+    duration_secs: u64,
+    temp_limit_c: f32,
+) -> Result<(), String> {
     if ctrl.running.load(Ordering::SeqCst) {
         return Err("A stress test is already running.".into());
     }
@@ -330,7 +369,10 @@ pub fn start_stress(ctrl: &std::sync::Arc<StressController>, duration_secs: u64,
 
     let ctrl = std::sync::Arc::clone(ctrl);
     std::thread::spawn(move || {
-        let threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).min(64);
+        let threads = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1)
+            .min(64);
         let deadline = Instant::now() + Duration::from_secs(duration);
         let mut handles = Vec::new();
         for _ in 0..threads {
@@ -394,23 +436,43 @@ pub fn stress_status(ctrl: &StressController) -> StressStatus {
     let paused = ctrl.paused.load(Ordering::SeqCst);
     let start = *ctrl.start_ms.lock().unwrap();
     let target = *ctrl.target_secs.lock().unwrap();
-    let elapsed = if start > 0 { (now_ms().saturating_sub(start)) / 1000 } else { 0 };
+    let elapsed = if start > 0 {
+        (now_ms().saturating_sub(start)) / 1000
+    } else {
+        0
+    };
     let reason = ctrl.stopped_reason.lock().unwrap().clone();
 
     let mut sys = sysinfo::System::new();
     sys.refresh_cpu_usage();
-    let cpu_usage = if running { Some(sys.global_cpu_usage()) } else { None };
+    let cpu_usage = if running {
+        Some(sys.global_cpu_usage())
+    } else {
+        None
+    };
     let cpu_temp = {
         let components = sysinfo::Components::new_with_refreshed_list();
-        components.list().iter()
+        components
+            .list()
+            .iter()
             .filter(|c| {
                 let l = c.label().to_lowercase();
                 l.contains("cpu") || l.contains("package") || l.contains("tdie")
             })
             .map(|c| c.temperature())
             .filter(|t| t.is_finite() && *t > 0.0)
-            .fold(None, |acc: Option<f32>, t| Some(acc.map_or(t, |m| m.max(t))))
+            .fold(None, |acc: Option<f32>, t| {
+                Some(acc.map_or(t, |m| m.max(t)))
+            })
     };
 
-    StressStatus { running, paused, elapsed_secs: elapsed.min(target), target_secs: target, cpu_usage_pct: cpu_usage, cpu_temp_c: cpu_temp, stopped_reason: if running { None } else { reason } }
+    StressStatus {
+        running,
+        paused,
+        elapsed_secs: elapsed.min(target),
+        target_secs: target,
+        cpu_usage_pct: cpu_usage,
+        cpu_temp_c: cpu_temp,
+        stopped_reason: if running { None } else { reason },
+    }
 }

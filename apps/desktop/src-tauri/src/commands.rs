@@ -64,7 +64,11 @@ pub fn get_network_adapters() -> Vec<NetworkAdapter> {
 
 #[tauri::command]
 pub fn get_monitoring_sample(state: State<'_, AppState>) -> MonitoringSample {
-    let interval = state.db.load_settings().map(|s| s.monitoring_interval_ms).unwrap_or(1000);
+    let interval = state
+        .db
+        .load_settings()
+        .map(|s| s.monitoring_interval_ms)
+        .unwrap_or(1000);
     let mut monitor = state.monitor.lock().unwrap();
     monitor.sample(interval)
 }
@@ -92,7 +96,10 @@ pub fn run_diagnostics(state: State<'_, AppState>) -> AppResult<DiagnosticReport
 }
 
 #[tauri::command]
-pub async fn run_cpu_benchmark(state: State<'_, AppState>, duration_secs: u64) -> AppResult<CpuBenchResult> {
+pub async fn run_cpu_benchmark(
+    state: State<'_, AppState>,
+    duration_secs: u64,
+) -> AppResult<CpuBenchResult> {
     let result = tauri::async_runtime::spawn_blocking(move || bench::cpu_benchmark(duration_secs))
         .await
         .map_err(|e| AppError::msg(format!("Benchmark task failed: {e}")))?;
@@ -103,7 +110,10 @@ pub async fn run_cpu_benchmark(state: State<'_, AppState>, duration_secs: u64) -
 }
 
 #[tauri::command]
-pub async fn run_memory_benchmark(state: State<'_, AppState>, size_mib: u64) -> AppResult<MemoryBenchResult> {
+pub async fn run_memory_benchmark(
+    state: State<'_, AppState>,
+    size_mib: u64,
+) -> AppResult<MemoryBenchResult> {
     let result = tauri::async_runtime::spawn_blocking(move || bench::memory_benchmark(size_mib))
         .await
         .map_err(|e| AppError::msg(format!("Benchmark task failed: {e}")))?;
@@ -114,11 +124,16 @@ pub async fn run_memory_benchmark(state: State<'_, AppState>, size_mib: u64) -> 
 }
 
 #[tauri::command]
-pub async fn run_storage_benchmark(state: State<'_, AppState>, path: String, size_mib: u64) -> AppResult<StorageBenchResult> {
-    let result = tauri::async_runtime::spawn_blocking(move || bench::storage_benchmark(&path, size_mib))
-        .await
-        .map_err(|e| AppError::msg(format!("Benchmark task failed: {e}")))?
-        .map_err(AppError::msg)?;
+pub async fn run_storage_benchmark(
+    state: State<'_, AppState>,
+    path: String,
+    size_mib: u64,
+) -> AppResult<StorageBenchResult> {
+    let result =
+        tauri::async_runtime::spawn_blocking(move || bench::storage_benchmark(&path, size_mib))
+            .await
+            .map_err(|e| AppError::msg(format!("Benchmark task failed: {e}")))?
+            .map_err(AppError::msg)?;
     if let Ok(json) = serde_json::to_string(&result) {
         let _ = state.db.save_benchmark("storage", &json);
     }
@@ -134,18 +149,28 @@ pub async fn run_memory_test(size_mib: u64) -> AppResult<MemoryTestResult> {
 }
 
 #[tauri::command]
-pub fn start_stress_test(state: State<'_, AppState>, duration_secs: u64, temp_limit_c: f32) -> AppResult<()> {
+pub fn start_stress_test(
+    state: State<'_, AppState>,
+    duration_secs: u64,
+    temp_limit_c: f32,
+) -> AppResult<()> {
     bench::start_stress(&state.stress, duration_secs, temp_limit_c).map_err(AppError::msg)
 }
 
 #[tauri::command]
 pub fn stop_stress_test(state: State<'_, AppState>) {
-    state.stress.stop.store(true, std::sync::atomic::Ordering::SeqCst);
+    state
+        .stress
+        .stop
+        .store(true, std::sync::atomic::Ordering::SeqCst);
 }
 
 #[tauri::command]
 pub fn pause_stress_test(state: State<'_, AppState>, paused: bool) {
-    state.stress.paused.store(paused, std::sync::atomic::Ordering::SeqCst);
+    state
+        .stress
+        .paused
+        .store(paused, std::sync::atomic::Ordering::SeqCst);
 }
 
 #[tauri::command]
@@ -198,7 +223,11 @@ pub fn get_windows_diagnostics() -> WindowsDiagnostics {
 }
 
 #[tauri::command]
-pub async fn build_report(state: State<'_, AppState>, report_type: String, include_sensitive: bool) -> AppResult<ReportBundle> {
+pub async fn build_report(
+    state: State<'_, AppState>,
+    report_type: String,
+    include_sensitive: bool,
+) -> AppResult<ReportBundle> {
     let inspection = state.db.load_inspection().unwrap_or_default();
     let benchmarks = load_recent_benchmarks(&state);
     let bundle = tauri::async_runtime::spawn_blocking(move || {
@@ -214,11 +243,19 @@ fn load_recent_benchmarks(state: &State<'_, AppState>) -> Vec<String> {
 }
 
 #[tauri::command]
-pub fn save_report_file(path: String, contents: String, is_base64: bool, overwrite: bool) -> AppResult<()> {
+pub fn save_report_file(
+    path: String,
+    contents: String,
+    is_base64: bool,
+    overwrite: bool,
+) -> AppResult<()> {
     let target = std::path::Path::new(&path);
     // Safety: refuse to overwrite an existing file unless explicitly allowed.
     if target.exists() && !overwrite {
-        return Err(AppError::Validation(format!("'{}' already exists. Choose a different name or enable overwrite.", path)));
+        return Err(AppError::Validation(format!(
+            "'{}' already exists. Choose a different name or enable overwrite.",
+            path
+        )));
     }
     if let Some(parent) = target.parent() {
         if !parent.as_os_str().is_empty() {

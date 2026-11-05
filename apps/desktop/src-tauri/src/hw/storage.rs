@@ -174,10 +174,13 @@ fn logical_partitions() -> std::collections::HashMap<u64, Vec<PartitionInfo>> {
     let mut result: HashMap<u64, Vec<PartitionInfo>> = HashMap::new();
 
     // disk -> partition and partition -> logical association maps.
-    let disk_part = wmi::cimv2("SELECT Antecedent, Dependent FROM Win32_DiskDriveToDiskPartition").unwrap_or_default();
-    let part_logical = wmi::cimv2("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition").unwrap_or_default();
+    let disk_part = wmi::cimv2("SELECT Antecedent, Dependent FROM Win32_DiskDriveToDiskPartition")
+        .unwrap_or_default();
+    let part_logical = wmi::cimv2("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition")
+        .unwrap_or_default();
     let logical = wmi::cimv2("SELECT DeviceID, FileSystem, Size, FreeSpace, VolumeName, DriveType FROM Win32_LogicalDisk").unwrap_or_default();
-    let logical_by_id: HashMap<String, wmi::WmiRow> = logical.into_iter()
+    let logical_by_id: HashMap<String, wmi::WmiRow> = logical
+        .into_iter()
         .filter_map(|r| wmi::get_str(&r, "DeviceID").map(|id| (id, r)))
         .collect();
 
@@ -194,19 +197,51 @@ fn logical_partitions() -> std::collections::HashMap<u64, Vec<PartitionInfo>> {
     for row in &disk_part {
         let ante = wmi::get_str(row, "Antecedent").unwrap_or_default();
         let dep = wmi::get_str(row, "Dependent").unwrap_or_default();
-        let disk_id = match extract_device_id(&ante) { Some(v) => v, None => continue };
-        let part_id = match extract_device_id(&dep) { Some(v) => v, None => continue };
+        let disk_id = match extract_device_id(&ante) {
+            Some(v) => v,
+            None => continue,
+        };
+        let part_id = match extract_device_id(&dep) {
+            Some(v) => v,
+            None => continue,
+        };
         // disk_id like \\.\PHYSICALDRIVE0 -> index 0
-        let index = disk_id.rsplit("PHYSICALDRIVE").next().and_then(|s| s.parse::<u64>().ok());
-        let index = match index { Some(i) => i, None => continue };
+        let index = disk_id
+            .rsplit("PHYSICALDRIVE")
+            .next()
+            .and_then(|s| s.parse::<u64>().ok());
+        let index = match index {
+            Some(i) => i,
+            None => continue,
+        };
         if let Some(lid) = part_to_logical.get(&part_id) {
             if let Some(lrow) = logical_by_id.get(lid) {
-                let cap = wmi::get_u64(lrow, "Size").map(|v| Measurement::available(v, "WMI Win32_LogicalDisk")).unwrap_or_else(|| Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported."));
-                let free = wmi::get_u64(lrow, "FreeSpace").map(|v| Measurement::available(v, "WMI Win32_LogicalDisk")).unwrap_or_else(|| Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported."));
-                let fs = wmi::get_str(lrow, "FileSystem").map(|v| Measurement::available(v, "WMI Win32_LogicalDisk")).unwrap_or_else(|| Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported."));
-                let label = wmi::get_str(lrow, "VolumeName").map(|v| Measurement::available(v, "WMI Win32_LogicalDisk")).unwrap_or_else(|| Measurement::unavailable("WMI Win32_LogicalDisk", "No label."));
+                let cap = wmi::get_u64(lrow, "Size")
+                    .map(|v| Measurement::available(v, "WMI Win32_LogicalDisk"))
+                    .unwrap_or_else(|| {
+                        Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported.")
+                    });
+                let free = wmi::get_u64(lrow, "FreeSpace")
+                    .map(|v| Measurement::available(v, "WMI Win32_LogicalDisk"))
+                    .unwrap_or_else(|| {
+                        Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported.")
+                    });
+                let fs = wmi::get_str(lrow, "FileSystem")
+                    .map(|v| Measurement::available(v, "WMI Win32_LogicalDisk"))
+                    .unwrap_or_else(|| {
+                        Measurement::unavailable("WMI Win32_LogicalDisk", "Not reported.")
+                    });
+                let label = wmi::get_str(lrow, "VolumeName")
+                    .map(|v| Measurement::available(v, "WMI Win32_LogicalDisk"))
+                    .unwrap_or_else(|| {
+                        Measurement::unavailable("WMI Win32_LogicalDisk", "No label.")
+                    });
                 result.entry(index).or_default().push(PartitionInfo {
-                    drive_letter: lid.clone(), file_system: fs, capacity_bytes: cap, free_bytes: free, label,
+                    drive_letter: lid.clone(),
+                    file_system: fs,
+                    capacity_bytes: cap,
+                    free_bytes: free,
+                    label,
                 });
             }
         }

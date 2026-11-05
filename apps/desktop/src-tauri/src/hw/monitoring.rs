@@ -39,13 +39,30 @@ impl MonitoringCollector {
         let cpu_usage = self.sys.global_cpu_usage();
         let total = self.sys.total_memory();
         let used = self.sys.used_memory();
-        let mem_pct = if total > 0 { Some((used as f32 / total as f32) * 100.0) } else { None };
+        let mem_pct = if total > 0 {
+            Some((used as f32 / total as f32) * 100.0)
+        } else {
+            None
+        };
 
         // Network rates: bytes since last refresh / elapsed seconds.
-        let (rx, tx) = self.networks.list().values()
-            .fold((0u64, 0u64), |(rx, tx), n| (rx + n.received(), tx + n.transmitted()));
-        let rx_rate = if elapsed_s > 0.0 { Some(rx as f64 / elapsed_s) } else { None };
-        let tx_rate = if elapsed_s > 0.0 { Some(tx as f64 / elapsed_s) } else { None };
+        let (rx, tx) = self
+            .networks
+            .list()
+            .values()
+            .fold((0u64, 0u64), |(rx, tx), n| {
+                (rx + n.received(), tx + n.transmitted())
+            });
+        let rx_rate = if elapsed_s > 0.0 {
+            Some(rx as f64 / elapsed_s)
+        } else {
+            None
+        };
+        let tx_rate = if elapsed_s > 0.0 {
+            Some(tx as f64 / elapsed_s)
+        } else {
+            None
+        };
 
         // Temperatures only from real, labelled sensors — never inferred.
         let mut cpu_temp = None;
@@ -56,7 +73,12 @@ impl MonitoringCollector {
             if !t.is_finite() || t <= 0.0 || t >= 150.0 {
                 continue;
             }
-            if cpu_temp.is_none() && (label.contains("cpu") || label.contains("package") || label.contains("tdie") || label.contains("tctl")) {
+            if cpu_temp.is_none()
+                && (label.contains("cpu")
+                    || label.contains("package")
+                    || label.contains("tdie")
+                    || label.contains("tctl"))
+            {
                 cpu_temp = Some(t);
             } else if gpu_temp.is_none() && (label.contains("gpu") || label.contains("gfx")) {
                 gpu_temp = Some(t);

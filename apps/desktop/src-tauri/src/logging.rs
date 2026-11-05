@@ -17,7 +17,13 @@ impl Log for FileLogger {
     }
     fn log(&self, record: &Record) {
         if let Ok(mut f) = self.file.lock() {
-            let _ = writeln!(f, "[{}] {}: {}", record.level(), record.target(), record.args());
+            let _ = writeln!(
+                f,
+                "[{}] {}: {}",
+                record.level(),
+                record.target(),
+                record.args()
+            );
         }
     }
     fn flush(&self) {
@@ -30,7 +36,9 @@ impl Log for FileLogger {
 pub fn init(dir: &Path) {
     let path = dir.join("vyronix.log");
     if let Ok(file) = OpenOptions::new().create(true).append(true).open(path) {
-        let logger = FileLogger { file: Mutex::new(file) };
+        let logger = FileLogger {
+            file: Mutex::new(file),
+        };
         if log::set_boxed_logger(Box::new(logger)).is_ok() {
             log::set_max_level(log::LevelFilter::Info);
             log::info!("VYRONIX logging initialised.");

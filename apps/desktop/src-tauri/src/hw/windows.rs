@@ -16,7 +16,13 @@ pub fn windows_diagnostics() -> WindowsDiagnostics {
     }
     #[cfg(not(windows))]
     {
-        WindowsDiagnostics { processes: Vec::new(), services: Vec::new(), drivers: Vec::new(), startup: Vec::new(), critical_events: Vec::new() }
+        WindowsDiagnostics {
+            processes: Vec::new(),
+            services: Vec::new(),
+            drivers: Vec::new(),
+            startup: Vec::new(),
+            critical_events: Vec::new(),
+        }
     }
 }
 
@@ -27,13 +33,21 @@ fn processes() -> Vec<ProcessEntry> {
     // A second refresh after a short interval yields a meaningful CPU delta.
     std::thread::sleep(std::time::Duration::from_millis(200));
     sys.refresh_cpu_usage();
-    let mut entries: Vec<ProcessEntry> = sys.processes().iter().map(|(pid, p)| ProcessEntry {
-        pid: pid.as_u32(),
-        name: p.name().to_string_lossy().to_string(),
-        cpu_pct: p.cpu_usage(),
-        memory_bytes: p.memory(),
-    }).collect();
-    entries.sort_by(|a, b| b.cpu_pct.partial_cmp(&a.cpu_pct).unwrap_or(std::cmp::Ordering::Equal));
+    let mut entries: Vec<ProcessEntry> = sys
+        .processes()
+        .iter()
+        .map(|(pid, p)| ProcessEntry {
+            pid: pid.as_u32(),
+            name: p.name().to_string_lossy().to_string(),
+            cpu_pct: p.cpu_usage(),
+            memory_bytes: p.memory(),
+        })
+        .collect();
+    entries.sort_by(|a, b| {
+        b.cpu_pct
+            .partial_cmp(&a.cpu_pct)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     entries.truncate(300);
     entries
 }
@@ -42,12 +56,17 @@ fn processes() -> Vec<ProcessEntry> {
 fn services() -> Vec<ServiceEntry> {
     use super::wmi;
     wmi::cimv2("SELECT Name, DisplayName, State, StartMode FROM Win32_Service")
-        .map(|rows| rows.into_iter().take(300).map(|r| ServiceEntry {
-            name: wmi::get_str(&r, "Name").unwrap_or_default(),
-            display_name: wmi::get_str(&r, "DisplayName").unwrap_or_default(),
-            state: wmi::get_str(&r, "State").unwrap_or_else(|| "Unknown".into()),
-            start_mode: wmi::get_str(&r, "StartMode").unwrap_or_else(|| "Unknown".into()),
-        }).collect())
+        .map(|rows| {
+            rows.into_iter()
+                .take(300)
+                .map(|r| ServiceEntry {
+                    name: wmi::get_str(&r, "Name").unwrap_or_default(),
+                    display_name: wmi::get_str(&r, "DisplayName").unwrap_or_default(),
+                    state: wmi::get_str(&r, "State").unwrap_or_else(|| "Unknown".into()),
+                    start_mode: wmi::get_str(&r, "StartMode").unwrap_or_else(|| "Unknown".into()),
+                })
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -59,24 +78,33 @@ fn drivers() -> Vec<DriverEntry> {
     let mut err_by_id: HashMap<String, u64> = HashMap::new();
     if let Ok(rows) = wmi::cimv2("SELECT DeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity") {
         for r in rows {
-            if let (Some(id), Some(code)) = (wmi::get_str(&r, "DeviceID"), wmi::get_u64(&r, "ConfigManagerErrorCode")) {
+            if let (Some(id), Some(code)) = (
+                wmi::get_str(&r, "DeviceID"),
+                wmi::get_u64(&r, "ConfigManagerErrorCode"),
+            ) {
                 err_by_id.insert(id, code);
             }
         }
     }
-    let mut entries: Vec<DriverEntry> = wmi::cimv2("SELECT DeviceName, DriverVersion, DriverDate, DeviceID FROM Win32_PnPSignedDriver")
-        .map(|rows| rows.into_iter().map(|r| {
-            let id = wmi::get_str(&r, "DeviceID").unwrap_or_default();
-            let code = err_by_id.get(&id).copied().unwrap_or(0);
-            DriverEntry {
-                name: wmi::get_str(&r, "DeviceName").unwrap_or_else(|| "Unknown device".into()),
-                version: wmi::get_str(&r, "DriverVersion").unwrap_or_else(|| "—".into()),
-                date: wmi::get_str(&r, "DriverDate").unwrap_or_else(|| "—".into()),
-                status: wmi::device_error_status(code).to_string(),
-                error_code: code as u32,
-            }
-        }).collect())
-        .unwrap_or_default();
+    let mut entries: Vec<DriverEntry> = wmi::cimv2(
+        "SELECT DeviceName, DriverVersion, DriverDate, DeviceID FROM Win32_PnPSignedDriver",
+    )
+    .map(|rows| {
+        rows.into_iter()
+            .map(|r| {
+                let id = wmi::get_str(&r, "DeviceID").unwrap_or_default();
+                let code = err_by_id.get(&id).copied().unwrap_or(0);
+                DriverEntry {
+                    name: wmi::get_str(&r, "DeviceName").unwrap_or_else(|| "Unknown device".into()),
+                    version: wmi::get_str(&r, "DriverVersion").unwrap_or_else(|| "—".into()),
+                    date: wmi::get_str(&r, "DriverDate").unwrap_or_else(|| "—".into()),
+                    status: wmi::device_error_status(code).to_string(),
+                    error_code: code as u32,
+                }
+            })
+            .collect()
+    })
+    .unwrap_or_default();
     // Surface problem devices first.
     entries.sort_by(|a, b| b.error_code.cmp(&a.error_code));
     entries.truncate(300);
@@ -87,11 +115,16 @@ fn drivers() -> Vec<DriverEntry> {
 fn startup() -> Vec<StartupEntry> {
     use super::wmi;
     wmi::cimv2("SELECT Name, Command, Location FROM Win32_StartupCommand")
-        .map(|rows| rows.into_iter().take(100).map(|r| StartupEntry {
-            name: wmi::get_str(&r, "Name").unwrap_or_default(),
-            command: wmi::get_str(&r, "Command").unwrap_or_default(),
-            location: wmi::get_str(&r, "Location").unwrap_or_default(),
-        }).collect())
+        .map(|rows| {
+            rows.into_iter()
+                .take(100)
+                .map(|r| StartupEntry {
+                    name: wmi::get_str(&r, "Name").unwrap_or_default(),
+                    command: wmi::get_str(&r, "Command").unwrap_or_default(),
+                    location: wmi::get_str(&r, "Location").unwrap_or_default(),
+                })
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -120,10 +153,27 @@ fn critical_events() -> Vec<EventEntry> {
         obj @ serde_json::Value::Object(_) => vec![obj],
         _ => return Vec::new(),
     };
-    arr.into_iter().take(100).map(|e| EventEntry {
-        time: e.get("TimeCreated").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-        source: e.get("ProviderName").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-        event_id: e.get("Id").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-        message: e.get("Message").and_then(|v| v.as_str()).unwrap_or("").chars().take(300).collect(),
-    }).collect()
+    arr.into_iter()
+        .take(100)
+        .map(|e| EventEntry {
+            time: e
+                .get("TimeCreated")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            source: e
+                .get("ProviderName")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            event_id: e.get("Id").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            message: e
+                .get("Message")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .chars()
+                .take(300)
+                .collect(),
+        })
+        .collect()
 }

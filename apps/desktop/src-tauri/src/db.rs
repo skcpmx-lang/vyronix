@@ -23,7 +23,9 @@ impl Db {
              CREATE TABLE IF NOT EXISTS benchmark_history (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, data TEXT, created_at_ms INTEGER);
              CREATE TABLE IF NOT EXISTS diagnostic_history (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, created_at_ms INTEGER);",
         )?;
-        Ok(Self { conn: Mutex::new(conn) })
+        Ok(Self {
+            conn: Mutex::new(conn),
+        })
     }
 
     pub fn load_settings(&self) -> AppResult<AppSettings> {
@@ -53,7 +55,9 @@ impl Db {
 
     pub fn load_inspection(&self) -> AppResult<Vec<InspectionItem>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare("SELECT id, category, name, status, notes, automated, updated_at_ms FROM inspection")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, category, name, status, notes, automated, updated_at_ms FROM inspection",
+        )?;
         let rows = stmt.query_map([], |row| {
             Ok(InspectionItem {
                 id: row.get(0)?,
@@ -78,7 +82,15 @@ impl Db {
             "INSERT INTO inspection (id, category, name, status, notes, automated, updated_at_ms)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
              ON CONFLICT(id) DO UPDATE SET status = ?4, notes = ?5, updated_at_ms = ?7",
-            params![item.id, item.category, item.name, item.status, item.notes, item.automated as i64, item.updated_at_ms as i64],
+            params![
+                item.id,
+                item.category,
+                item.name,
+                item.status,
+                item.notes,
+                item.automated as i64,
+                item.updated_at_ms as i64
+            ],
         )?;
         Ok(())
     }
@@ -104,7 +116,8 @@ impl Db {
     /// Most recent benchmark runs, newest first, as "[kind] json" summaries.
     pub fn recent_benchmarks(&self, limit: u32) -> AppResult<Vec<String>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare("SELECT kind, data FROM benchmark_history ORDER BY id DESC LIMIT ?1")?;
+        let mut stmt =
+            conn.prepare("SELECT kind, data FROM benchmark_history ORDER BY id DESC LIMIT ?1")?;
         let rows = stmt.query_map(params![limit], |row| {
             let kind: String = row.get(0)?;
             let data: String = row.get(1)?;
