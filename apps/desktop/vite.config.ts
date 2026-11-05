@@ -9,6 +9,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     host: "0.0.0.0",
+    // Allow the Arena live-preview proxy host (dev only).
+    allowedHosts: true,
     watch: { ignored: ["**/src-tauri/**"] },
   },
   build: {
