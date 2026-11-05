@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "VYRONIX",
+  "version": "0.1.0",
+  "identifier": "com.merqo.vyronix",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "VYRONIX — MERQO Hardware Diagnostics",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "MERQO",
+    "copyright": "Copyright © Shohan Khan. All rights reserved.",
+    "category": "Utility",
+    "shortDescription": "VYRONIX hardware diagnostics",
+    "longDescription": "VYRONIX — a premium, privacy-first Windows PC and laptop diagnostic, hardware health monitoring, testing and inspection ecosystem. A MERQO Software Product.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine",
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

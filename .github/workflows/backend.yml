@@ -1,0 +1,88 @@
+name: Backend check (Windows)
+
+# The Arena sandbox has no local Rust toolchain, so the Tauri backend is
+# compiled on a Windows runner. Compiler output is captured into
+# .ci-backend-diagnostics.txt and committed back so the agent can read exact
+# feedback. "[skip ci]" prevents re-triggering. Removed once the app ships.
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "apps/desktop/src-tauri/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/backend.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backend-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: cargo check (x86_64-pc-windows-msvc)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build frontend (provides dist for tauri::generate_context!)
+        run: |
+          cd apps/desktop
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Rust toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-backend-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-backend-
+
+      - name: Capture cargo check output
+        run: |
+          set +e
+          {
+            echo "=== rustc / cargo version ==="
+            cargo --version; rustc --version
+            echo
+            echo "=== cargo check --workspace ==="
+            cargo check --workspace 2>&1
+            echo "CHECK_EXIT=$?"
+          } > .ci-backend-diagnostics.txt
+          exit 0
+
+      - name: Commit diagnostics back
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .ci-backend-diagnostics.txt Cargo.lock
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: backend check diagnostics + lockfile [skip ci]"
+            git pull --rebase origin "${{ github.ref_name }}" || true
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
