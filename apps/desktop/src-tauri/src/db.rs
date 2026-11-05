@@ -1,7 +1,7 @@
 //! SQLite persistence for settings, inspection items and test history.
 //! Local-only; no telemetry. Uses rusqlite with the bundled SQLite engine.
 
-use crate::error::{AppError, AppResult};
+use crate::error::AppResult;
 use crate::model::{AppSettings, InspectionItem};
 use rusqlite::{params, Connection};
 use std::path::Path;

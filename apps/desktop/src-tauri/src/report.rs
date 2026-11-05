@@ -286,7 +286,7 @@ pub fn build_report(
     let ov = hw::system::system_overview();
     let cpu = hw::system::cpu_info();
     let gpus = hw::system::gpu_info();
-    let mem = hw::memory_info();
+    let mem = hw::system::memory_info();
     let bat = hw::battery::battery_info();
     let storage = hw::storage::storage_devices();
     let adapters = hw::network::network_adapters();

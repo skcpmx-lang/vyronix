@@ -26,7 +26,7 @@ vyronix-core = { path = "../../../crates/vyronix-core" }
 sysinfo = "0.32.1"
 starship-battery = "0.11.1"
 rusqlite = { version = "0.32", features = ["bundled"] }
-log = "0.4"
+log = { version = "0.4", features = ["std", "alloc"] }
 fs2 = "0.4"
 base64 = "0.22"
 

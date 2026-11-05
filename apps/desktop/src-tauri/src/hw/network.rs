@@ -113,7 +113,7 @@ pub fn ping(host: &str, count: u32) -> Result<PingResult, String> {
 fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
     use std::ffi::CString;
     use windows::core::PCSTR;
-    use windows::Win32::Foundation::{HANDLE, INVALID_HANDLE_VALUE};
+    use windows::Win32::Foundation::HANDLE;
     use windows::Win32::NetworkManagement::IpHelper::{
         IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho, ICMP_ECHO_REPLY,
     };
@@ -126,10 +126,8 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
         return Err(format!("Could not resolve '{host}' to an IPv4 address."));
     }
 
-    let handle: HANDLE = unsafe { IcmpCreateFile() };
-    if handle == INVALID_HANDLE_VALUE {
-        return Err("Failed to open ICMP handle.".into());
-    }
+    let handle: HANDLE =
+        unsafe { IcmpCreateFile() }.map_err(|e| format!("Failed to open ICMP handle: {e}"))?;
 
     let payload = [0x76u8; 32]; // "v" padding, standard 32-byte echo payload
     let reply_size = (std::mem::size_of::<ICMP_ECHO_REPLY>() + payload.len() + 8) as u32;
@@ -144,7 +142,7 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
                 dest,
                 payload.as_ptr() as *const std::ffi::c_void,
                 payload.len() as u16,
-                std::ptr::null(),
+                None,
                 reply_buf.as_mut_ptr() as *mut std::ffi::c_void,
                 reply_size,
                 2000,
