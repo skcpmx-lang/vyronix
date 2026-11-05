@@ -1,9 +1,0 @@
-=== rustc / cargo version ===
-cargo 1.99.1 (5f94df478 2026-08-27)
-rustc 1.99.1 (58cf8f9c3 2026-10-13)
-
-=== cargo check --workspace ===
-   Compiling vyronix-desktop v0.1.0 (D:\a\vyronix\vyronix\apps\desktop\src-tauri)
-    Checking vyronix-core v0.1.0 (D:\a\vyronix\vyronix\crates\vyronix-core)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.44s
-CHECK_EXIT=0

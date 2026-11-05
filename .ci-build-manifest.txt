@@ -1,7 +1,0 @@
-VYRONIX build manifest
-commit: babaeda74f8b1c1f43ff106e1f63df33fd09067a
-run: 41982545548
-built_utc: 2026-11-05T06:49:25Z
-
-VYRONIX-0.1.0-x64-portable.exe | 7134720 bytes | sha256=d0e06b08530b013b89921fc5ef10ad2a5d0215efbc6626f82eb5c3577ffb1f98
-VYRONIX-0.1.0-x64-setup.exe | 2687348 bytes | sha256=5a78712073b86a5d6d8b08f2ec58daba5018f89ef498f5c3cc6f2782da0f3df8

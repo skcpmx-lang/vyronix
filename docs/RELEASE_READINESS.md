@@ -17,9 +17,9 @@ hardware" without evidence. Current state: **pre-release, gates NOT all satisfie
 | G7 | Checksums (SHA-256) generated for artifacts | ✅ | `SHA256SUMS.txt` + `.ci-build-manifest.txt`. |
 | G8 | Release notes drafted (honest, versioned) | ✅ | `RELEASE_NOTES.md`. |
 | G9 | No secrets / build artifacts committed; `.gitignore` correct | ✅ | repo review. |
-| G10 | Temporary CI diagnostic helpers removed; `cargo fmt --check` restored | ⏳ | delete `format.yml`/`backend.yml` diagnostics + `.ci-*` files before release. |
-| G11 | On-hardware validation documented (what was/wasn't tested) | ⏳ | this file + `VALIDATION.md`. |
-| G12 | Version + tag consistent (`VERSION`, Cargo, tauri.conf, package.json) | 🔄 | align to 0.1.0. |
+| G10 | Temporary CI diagnostic helpers removed; `cargo fmt --check` restored | ✅ | `format.yml` + `.ci-*` files deleted; fmt check in `ci.yml`; backend/package are clean gates. |
+| G11 | On-hardware validation documented (what was/wasn't tested) | ✅ (documented) | this file + `VALIDATION.md` + `LIMITATIONS.md`. Physical-device readings still pending. |
+| G12 | Version + tag consistent (`VERSION`, Cargo, tauri.conf, package.json) | ✅ | all 0.1.0. |
 
 ## Physical-hardware validation limits (honest disclosure)
 
