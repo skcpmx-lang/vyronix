@@ -1,0 +1,92 @@
+name: Release (Windows)
+
+# Builds the Windows artifacts and creates a DRAFT pre-release. Publication is a
+# deliberate, gated step: a release is only published after every gate in
+# docs/RELEASE_READINESS.md passes and the owner authorizes it. This workflow never
+# auto-publishes.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build + draft release
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend dependencies
+        run: |
+          cd apps/desktop
+          npm ci --no-audit --no-fund
+
+      - name: Rust toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-release-
+
+      - name: Build Tauri app (release + NSIS)
+        run: |
+          cd apps/desktop
+          npm run tauri build
+
+      - name: Stage artifacts + checksums
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter "vyronix-desktop.exe" -Path target, apps/desktop/src-tauri/target -ErrorAction SilentlyContinue |
+                 Where-Object { $_.FullName -match "release" -and $_.FullName -notmatch "bundle|deps|build" } |
+                 Select-Object -First 1
+          $nsis = Get-ChildItem -Recurse -Filter "*-setup.exe" -Path target, apps/desktop/src-tauri/target -ErrorAction SilentlyContinue |
+                 Select-Object -First 1
+          if (-not $exe) { Write-Error "Portable exe not found"; exit 1 }
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item $exe.FullName "artifacts/VYRONIX-0.1.0-x64-portable.exe"
+          if ($nsis) { Copy-Item $nsis.FullName "artifacts/VYRONIX-0.1.0-x64-setup.exe" }
+          cd artifacts
+          $lines = Get-ChildItem -File | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$h  $($_.Name)"
+          }
+          $lines | Out-File -Encoding ascii SHA256SUMS.txt
+
+      - name: Launch smoke test
+        run: |
+          $exe = Resolve-Path "artifacts/VYRONIX-0.1.0-x64-portable.exe"
+          $proc = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 20
+          if ($proc.HasExited) { Write-Error "Smoke test FAILED (code $($proc.ExitCode))"; exit 1 }
+          Stop-Process -Id $proc.Id -Force
+          Write-Output "Smoke test PASSED."
+
+      - name: Create DRAFT pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            --draft --prerelease `
+            --title "VYRONIX ${{ github.ref_name }} (pre-release)" `
+            --notes-file RELEASE_NOTES.md `
+            artifacts/VYRONIX-0.1.0-x64-portable.exe `
+            artifacts/VYRONIX-0.1.0-x64-setup.exe `
+            artifacts/SHA256SUMS.txt

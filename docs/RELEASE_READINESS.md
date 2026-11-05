@@ -10,10 +10,10 @@ hardware" without evidence. Current state: **pre-release, gates NOT all satisfie
 | --- | --- | --- | --- |
 | G1 | Core crate tests pass | ✅ | CI `TEST_EXIT=0`, 72 tests. |
 | G2 | Core clippy clean (`-D warnings`) | ✅ | CI `CLIPPY_EXIT=0`. |
-| G3 | Frontend typecheck + unit tests + build pass | ✅ (local) / 🔄 (CI job to add) | vitest 24 pass; Vite build OK; add CI job. |
-| G4 | Tauri backend compiles for `x86_64-pc-windows-msvc` | 🔄 | `.ci-backend-diagnostics.txt` `CHECK_EXIT=0`. |
-| G5 | Windows packaging produces **portable exe + NSIS installer** | ⏳ | CI build artifacts exist. |
-| G6 | **Launch smoke test** — exe starts, window renders, no crash | ⏳ | CI smoke step / recorded run. |
+| G3 | Frontend typecheck + unit tests + build pass | ✅ | vitest 24 pass; Vite build OK; CI frontend job added. |
+| G4 | Tauri backend compiles for `x86_64-pc-windows-msvc` | ✅ | `.ci-backend-diagnostics.txt` **`CHECK_EXIT=0`** (Windows CI). |
+| G5 | Windows packaging produces **portable exe + NSIS installer** | 🔄 | `package.yml` build running. |
+| G6 | **Launch smoke test** — exe starts, window renders, no crash | 🔄 | `package.yml` smoke step running. |
 | G7 | Checksums (SHA-256) generated for artifacts | ⏳ | `SHA256SUMS.txt`. |
 | G8 | Release notes drafted (honest, versioned) | ⏳ | `RELEASE_NOTES.md`. |
 | G9 | No secrets / build artifacts committed; `.gitignore` correct | ✅ | repo review. |

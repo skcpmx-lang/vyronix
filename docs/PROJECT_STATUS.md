@@ -17,9 +17,9 @@ Windows 10/11 x64 hardware; that limit is recorded in `RELEASE_READINESS.md`.
 | Frontend unit tests (vitest) | ✅ **24 passed** | local run |
 | Frontend production build (Vite) | ✅ succeeds | local run + Windows CI |
 | Original icon set (incl. `.ico`) | ✅ generated | `scripts/generate_icons.py` |
-| Tauri backend Windows compile | 🔄 in progress | `.ci-backend-diagnostics.txt` (Windows CI) |
+| Tauri backend Windows compile | ✅ **`CHECK_EXIT=0`** | `.ci-backend-diagnostics.txt` (Windows CI) |
 | Native app on-hardware validation | ⏳ pending | requires Windows device |
-| Packaging (installer + portable) | ⏳ pending | after backend compiles |
+| Packaging (installer + portable) | 🔄 in progress | `package.yml` (build + smoke + checksums) |
 | GitHub Release | ⏳ **not published** | only after all gates pass |
 
 ## Feature status matrix
