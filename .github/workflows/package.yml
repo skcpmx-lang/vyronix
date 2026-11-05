@@ -19,7 +19,7 @@ on:
       - ".github/workflows/package.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: package-${{ github.ref }}
@@ -91,15 +91,41 @@ jobs:
           Write-Output "Smoke test PASSED: VYRONIX launched and stayed running (PID $($proc.Id))."
           Stop-Process -Id $proc.Id -Force
 
-      - name: Compute SHA-256 checksums
+      - name: Compute SHA-256 checksums + build manifest
         run: |
           cd artifacts
-          $lines = Get-ChildItem -File | ForEach-Object {
+          $files = Get-ChildItem -File | Where-Object { $_.Name -ne "BUILD_MANIFEST.txt" }
+          $lines = $files | ForEach-Object {
             $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
             "$h  $($_.Name)"
           }
           $lines | Out-File -Encoding ascii SHA256SUMS.txt
-          Get-Content SHA256SUMS.txt
+          $manifest = @()
+          $manifest += "VYRONIX build manifest"
+          $manifest += "commit: ${{ github.sha }}"
+          $manifest += "run: ${{ github.run_id }}"
+          $manifest += "built_utc: $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+          $manifest += ""
+          foreach ($f in $files) {
+            $h = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
+            $manifest += "$($f.Name) | $($f.Length) bytes | sha256=$h"
+          }
+          $manifest | Out-File -Encoding utf8 BUILD_MANIFEST.txt
+          Get-Content BUILD_MANIFEST.txt
+
+      - name: Commit build manifest back (temporary diagnostic)
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp artifacts/BUILD_MANIFEST.txt .ci-build-manifest.txt 2>/dev/null || true
+          git add .ci-build-manifest.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: build manifest [skip ci]"
+            git pull --rebase origin "${{ github.ref_name }}" || true
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
