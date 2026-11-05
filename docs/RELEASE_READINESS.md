@@ -12,10 +12,10 @@ hardware" without evidence. Current state: **pre-release, gates NOT all satisfie
 | G2 | Core clippy clean (`-D warnings`) | ✅ | CI `CLIPPY_EXIT=0`. |
 | G3 | Frontend typecheck + unit tests + build pass | ✅ | vitest 24 pass; Vite build OK; CI frontend job added. |
 | G4 | Tauri backend compiles for `x86_64-pc-windows-msvc` | ✅ | `.ci-backend-diagnostics.txt` **`CHECK_EXIT=0`** (Windows CI). |
-| G5 | Windows packaging produces **portable exe + NSIS installer** | 🔄 | `package.yml` build running. |
-| G6 | **Launch smoke test** — exe starts, window renders, no crash | 🔄 | `package.yml` smoke step running. |
-| G7 | Checksums (SHA-256) generated for artifacts | ⏳ | `SHA256SUMS.txt`. |
-| G8 | Release notes drafted (honest, versioned) | ⏳ | `RELEASE_NOTES.md`. |
+| G5 | Windows packaging produces **portable exe + NSIS installer** | ✅ | Build manifest: portable 7,134,720 B + setup 2,687,348 B. |
+| G6 | **Launch smoke test** — exe starts, window renders, no crash | ✅ | `package.yml` smoke step **passed** (app launched, stayed running 20s). |
+| G7 | Checksums (SHA-256) generated for artifacts | ✅ | `SHA256SUMS.txt` + `.ci-build-manifest.txt`. |
+| G8 | Release notes drafted (honest, versioned) | ✅ | `RELEASE_NOTES.md`. |
 | G9 | No secrets / build artifacts committed; `.gitignore` correct | ✅ | repo review. |
 | G10 | Temporary CI diagnostic helpers removed; `cargo fmt --check` restored | ⏳ | delete `format.yml`/`backend.yml` diagnostics + `.ci-*` files before release. |
 | G11 | On-hardware validation documented (what was/wasn't tested) | ⏳ | this file + `VALIDATION.md`. |

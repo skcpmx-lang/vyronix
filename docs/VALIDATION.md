@@ -12,7 +12,21 @@ evidence arrives. No entry is added without a real, observed result.
 | Frontend `tsc --noEmit` | **0 errors** | local sandbox run |
 | Frontend vitest | **24 passed (4 files)** | local sandbox run |
 | Frontend Vite production build | **success** | local sandbox + Windows CI frontend step |
-| Backend Windows compile | **in progress** — first pass found 4 errors, all fixed; re-check running | `.ci-backend-diagnostics.txt` |
+| Backend Windows compile | ✅ **`CHECK_EXIT=0`, 0 warnings** | `.ci-backend-diagnostics.txt` (Windows CI) |
+| Windows packaging (release + NSIS) | ✅ **portable exe + installer built** | `package.yml` run 41982545548 |
+| Launch smoke test (portable exe) | ✅ **passed** — app launched, stayed running | `package.yml` smoke step |
+
+### Windows build evidence (`.ci-build-manifest.txt`, run 41982545548)
+
+| Artifact | Size | SHA-256 |
+| --- | --- | --- |
+| `VYRONIX-0.1.0-x64-portable.exe` | 7,134,720 B | `d0e06b08530b013b89921fc5ef10ad2a5d0215efbc6626f82eb5c3577ffb1f98` |
+| `VYRONIX-0.1.0-x64-setup.exe` | 2,687,348 B | `5a78712073b86a5d6d8b08f2ec58daba5018f89ef498f5c3cc6f2782da0f3df8` |
+
+The portable executable was launched on a Windows runner and remained running
+(no crash) for the smoke-test window. These are **real, compiled Windows binaries**,
+not placeholders. (The sandbox cannot download the binaries — the artifact blob host
+is network-blocked — but they exist as CI artifacts and are attached to the release.)
 
 ### Frontend test coverage (24 tests)
 

@@ -19,8 +19,8 @@ Windows 10/11 x64 hardware; that limit is recorded in `RELEASE_READINESS.md`.
 | Original icon set (incl. `.ico`) | ✅ generated | `scripts/generate_icons.py` |
 | Tauri backend Windows compile | ✅ **`CHECK_EXIT=0`** | `.ci-backend-diagnostics.txt` (Windows CI) |
 | Native app on-hardware validation | ⏳ pending | requires Windows device |
-| Packaging (installer + portable) | 🔄 in progress | `package.yml` (build + smoke + checksums) |
-| GitHub Release | ⏳ **not published** | only after all gates pass |
+| Packaging (installer + portable) | ✅ **built + smoke-tested** | portable 6.8 MB + NSIS 2.6 MB; SHA-256 recorded |
+| GitHub Release | 🔄 **draft pre-release being prepared** | published only after gates + authorization |
 
 ## Feature status matrix
 
