@@ -1,0 +1,109 @@
+name: Package (Windows)
+
+# Builds the unsigned portable executable + NSIS installer on a Windows runner,
+# runs a launch smoke test, computes SHA-256 checksums and uploads the artifacts.
+# A GitHub Release is created separately only after every release gate passes.
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "apps/desktop/src-tauri/**"
+      - "apps/desktop/src/**"
+      - "apps/desktop/package.json"
+      - "apps/desktop/package-lock.json"
+      - "apps/desktop/index.html"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/package.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Build + smoke test (x64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend dependencies
+        run: |
+          cd apps/desktop
+          npm ci --no-audit --no-fund
+
+      - name: Rust toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustc --version
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-package-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-package-
+
+      - name: Build Tauri app (release + NSIS)
+        run: |
+          cd apps/desktop
+          npm run tauri build
+
+      - name: Locate artifacts
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter "vyronix-desktop.exe" -Path target, apps/desktop/src-tauri/target -ErrorAction SilentlyContinue |
+                 Where-Object { $_.FullName -match "release" -and $_.FullName -notmatch "bundle|deps|build" } |
+                 Select-Object -First 1
+          $nsis = Get-ChildItem -Recurse -Filter "*-setup.exe" -Path target, apps/desktop/src-tauri/target -ErrorAction SilentlyContinue |
+                 Select-Object -First 1
+          if (-not $exe) { Write-Error "Portable exe not found"; exit 1 }
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item $exe.FullName "artifacts/VYRONIX-0.1.0-x64-portable.exe"
+          if ($nsis) { Copy-Item $nsis.FullName "artifacts/VYRONIX-0.1.0-x64-setup.exe" }
+          Get-ChildItem artifacts | Format-Table Name, Length
+
+      - name: Launch smoke test (portable exe)
+        run: |
+          $exe = Resolve-Path "artifacts/VYRONIX-0.1.0-x64-portable.exe"
+          $proc = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 20
+          if ($proc.HasExited) {
+            Write-Error "App exited prematurely (code $($proc.ExitCode)). Smoke test FAILED."
+            exit 1
+          }
+          Write-Output "Smoke test PASSED: VYRONIX launched and stayed running (PID $($proc.Id))."
+          Stop-Process -Id $proc.Id -Force
+
+      - name: Compute SHA-256 checksums
+        run: |
+          cd artifacts
+          $lines = Get-ChildItem -File | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$h  $($_.Name)"
+          }
+          $lines | Out-File -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vyronix-windows-x64
+          path: artifacts/*
+          if-no-files-found: error

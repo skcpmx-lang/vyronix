@@ -157,7 +157,9 @@ fn windows_ping(host: &str, count: u32) -> Result<PingResult, String> {
         }
         std::thread::sleep(std::time::Duration::from_millis(200));
     }
-    unsafe { IcmpCloseHandle(handle) };
+    unsafe {
+        let _ = IcmpCloseHandle(handle);
+    };
 
     let transmitted = count;
     let loss_pct = if transmitted > 0 {

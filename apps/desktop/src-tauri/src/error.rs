@@ -6,8 +6,6 @@ use serde::ser::{Serialize, Serializer};
 pub enum AppError {
     #[error("{0}")]
     Message(String),
-    #[error("operation cancelled")]
-    Cancelled,
     #[error("validation failed: {0}")]
     Validation(String),
     #[error("io error: {0}")]
