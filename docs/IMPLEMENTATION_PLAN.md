@@ -26,19 +26,21 @@ verification). Status legend: ✅ Validated · 🔄 In progress · ⏳ Pending.
 | 18 | Diagnostic engine integration + scoring UI | ✅ | Dashboard + reports consume findings/score/recommendations. |
 | 19 | Reports (PDF/HTML/CSV/JSON) + export | ✅ | Offline PDF (jsPDF) + backend bundle; save dialog + guarded write. |
 | 20 | Premium UI polish (a11y, search, settings, animations) | ✅ | Global search palette, settings, themes, keyboard shortcuts. |
-| 21 | Security / privacy / performance hardening + QA | 🔄 | Frontend tests (24) pass; backend Windows compile + on-hardware QA pending. |
-| 22 | Packaging, CI/CD, release gates, verified release | 🔄 | Windows CI check running; NSIS + portable packaging & release gates pending. |
+| 21 | Security / privacy / performance hardening + QA | ✅ (automated) | Core + frontend tests pass; backend Windows compile clean; physical QA is owner-performed (Level C). |
+| 22 | Packaging, CI/CD, release gates, verified release | 🔄 | Portable + NSIS built, smoke test passed, **draft pre-release `v0.1.0` created**; publication awaits owner authorization. |
 
 ## Current focus
 
-The critical path is **Phase 21–22**: compile the Tauri backend on Windows, fix any
-compiler feedback, then package the **unsigned portable executable + NSIS installer**,
-run a launch smoke test, and only publish a release after every gate in
-`RELEASE_READINESS.md` passes.
+Automated (Level A) and Windows CI (Level B) validation are complete, and a **draft
+pre-release `v0.1.0`** exists with the portable exe, installer and checksums. The remaining
+steps are **owner-driven**: (1) perform manual hardware testing on real Windows 10/11 devices
+using `MANUAL_HARDWARE_TESTING.md` and submit results, and (2) explicitly authorize publication
+of the draft release. Physical-device testing does not block preparing the draft.
 
 ## Resumability
 
-On `CONTINUE`, resume from the verified state: re-install `node_modules` (not
-persisted), recover git HEAD with a **mixed** reset to the remote branch if an
-interruption reset it, read `.ci-diagnostics.txt` / `.ci-backend-diagnostics.txt` for
-exact compiler feedback, and continue the highest-priority unfinished phase.
+On `CONTINUE`, resume from the verified state: re-install `node_modules` (not persisted),
+recover git HEAD with a **mixed** reset to the remote branch if an interruption reset it, check
+the latest GitHub Actions runs for CI status, and continue the highest-priority unfinished
+step. The temporary `.ci-*` diagnostic files have been removed; CI gates now fail directly on
+error. Do not publish the draft release without explicit owner authorization.

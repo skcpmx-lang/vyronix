@@ -1,0 +1,89 @@
+name: "Hardware-specific bug"
+description: "Report a defect that appears on specific hardware (wrong value, crash, missing data that should exist)."
+title: "[HW Bug] <module> — <device make/model>"
+labels: ["bug", "hardware-specific"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for **real defects**. If a value is honestly shown as `Unsupported` /
+        `Permission Required` and that matches `docs/LIMITATIONS.md`, it is a **limitation,
+        not a bug** — please use the hardware test report instead.
+  - type: input
+    id: module
+    attributes:
+      label: Affected module / page
+      description: e.g. "Storage", "Battery", "Monitoring", "Reports".
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device make & model
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Relevant hardware (CPU / GPU / RAM / storage / battery / peripheral)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows edition, version & build
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: VYRONIX version & build type
+      description: From the About page, e.g. "0.1.0, installer".
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Is it reproducible?
+      options: ["Always", "Sometimes", "Once"]
+    validations:
+      required: true
+  - type: dropdown
+    id: admin
+    attributes:
+      label: Does running as administrator change it?
+      options: ["Not tried", "No change", "Yes — works as admin", "Yes — worse as admin"]
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots / exports / error text
+      description: Drag & drop screenshots, exported reports, or paste any error message.
+    validations:
+      required: true
+  - type: textarea
+    id: crosscheck
+    attributes:
+      label: Cross-check with Windows tools (optional)
+      description: e.g. what Task Manager / msinfo32 / dxdiag / Disk Management show for the same item.

@@ -96,8 +96,23 @@ npm run tauri build   # produces installer + portable executable
 
 See **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** for the live feature/status
 matrix and **[docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md)** for the release
-gates and physical-hardware validation limits. VYRONIX is under active development;
-a release is published only after every release gate passes.
+gates and physical-hardware validation limits. A **draft pre-release `v0.1.0`** exists;
+it is published only with explicit owner authorization.
+
+## Hardware validation & manual testing
+
+VYRONIX distinguishes three validation levels:
+- **Automated** — unit tests, clippy, format, typecheck, build (done in CI).
+- **Windows CI** — compile, packaging, and an executable **launch smoke test** (done).
+- **Physical device** — real sensors/peripherals on Windows 10/11, **performed manually by
+  the owner** and recorded only after observed results are submitted.
+
+To test on real hardware, follow **[docs/MANUAL_HARDWARE_TESTING.md](docs/MANUAL_HARDWARE_TESTING.md)**
+(step-by-step procedures, pass/fail criteria, evidence, troubleshooting, and a full hardware
+compatibility matrix). Report results with the
+[test report template](docs/templates/HARDWARE_TEST_REPORT_TEMPLATE.md) via the
+**“Hardware test report”** GitHub issue form, or report defects via **“Hardware-specific bug”**,
+or email **merqoonline@gmail.com**.
 
 ---
 

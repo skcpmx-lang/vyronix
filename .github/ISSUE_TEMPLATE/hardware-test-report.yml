@@ -1,0 +1,101 @@
+name: "Hardware test report"
+description: "Submit results from running VYRONIX on a real Windows 10/11 device."
+title: "[HW Test] <device make/model> — Windows <10/11>"
+labels: ["hardware-testing", "validation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for validating VYRONIX on real hardware! Please follow
+        `docs/MANUAL_HARDWARE_TESTING.md` and record **only what you actually observed**.
+        You can paste the filled-in `docs/templates/HARDWARE_TEST_REPORT_TEMPLATE.md` below.
+  - type: input
+    id: device
+    attributes:
+      label: Device make & model
+      description: e.g. "Dell Latitude 5420" or "Custom desktop (ASUS B550)".
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Key hardware (CPU / GPU / RAM / storage / battery?)
+      description: e.g. "i5-1135G7 / Iris Xe / 16GB DDR4 / 512GB NVMe / laptop battery".
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows edition, version & build
+      description: e.g. "Windows 11 Pro 23H2 (22631)".
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: VYRONIX version & build type
+      description: From the About page, e.g. "0.1.0, portable".
+    validations:
+      required: true
+  - type: dropdown
+    id: admin
+    attributes:
+      label: Did you run as administrator?
+      options: ["No", "Yes", "Tried both"]
+    validations:
+      required: true
+  - type: dropdown
+    id: checksum
+    attributes:
+      label: Did you verify the SHA-256 checksum before running?
+      options: ["Yes", "No"]
+    validations:
+      required: true
+  - type: textarea
+    id: module-results
+    attributes:
+      label: Per-module results
+      description: >
+        For each module give a verdict (PASS / FAIL / BLOCKED / LIMITATION) and a short note.
+        Paste the per-module table from the report template.
+      placeholder: |
+        System Overview: PASS — matches msinfo32.
+        CPU: PASS — name/cores match Task Manager; temp Unsupported (limitation).
+        Battery: PASS — health 87%, charge state reacts to AC.
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: matrix
+    attributes:
+      label: Hardware compatibility matrix (this device)
+      description: >
+        Paste the filled compatibility matrix (CPU, GPU, RAM, SSD, HDD, NVMe, battery, display,
+        keyboard, touchpad, audio, mic, camera, USB, HDMI, Wi-Fi, Bluetooth, Ethernet, sensors,
+        Windows diagnostics) with PASS/FAIL/BLOCKED/LIMITATION.
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failures / bugs found
+      description: For each, give module, steps to reproduce, expected vs actual, and whether reproducible.
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Limitations observed (Unsupported / manual-only)
+      description: Values shown as Unsupported/Permission Required/Unavailable, and whether they match the documented limitation.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / attachments
+      description: Drag & drop screenshots and exported reports (JSON preferred) here, or link them.
+    validations:
+      required: true
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: Honesty confirmation
+      options:
+        - label: I personally performed these tests on the physical device described, and the results reflect what I actually observed.
+          required: true

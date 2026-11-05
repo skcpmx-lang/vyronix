@@ -31,8 +31,12 @@ Honest, documented limits. Where a hard requirement cannot be met exactly, the c
   "unavailable" states (it compiles, but does not fabricate hardware data).
 - **Development sandbox is Linux** with no Rust toolchain and no Windows device:
   - Rust is compiled via **GitHub Actions**, not locally.
-  - **No physical-hardware readings have been observed** during development; on-device
-    validation is a release gate and will be recorded when performed.
+  - **No physical-hardware readings have been observed** by the developer. Physical-device
+    validation is **performed manually by the owner** on real Windows 10/11 computers using
+    [`MANUAL_HARDWARE_TESTING.md`](MANUAL_HARDWARE_TESTING.md), and recorded only after the
+    owner submits observed results. It does not block the draft release.
+- **Camera, USB, HDMI, DisplayPort, audio jack and Bluetooth have no automated test** in
+  v0.1.0 — they are covered by the guided **manual inspection** checklist only.
 - **Unsigned builds** → Windows SmartScreen may warn on first run. Checksums are
   provided for integrity verification.
 

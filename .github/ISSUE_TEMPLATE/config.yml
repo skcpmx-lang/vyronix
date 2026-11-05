@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "📋 Manual Hardware Testing Guide"
+    url: "https://github.com/skcpmx-lang/vyronix/blob/arena/e3dcbbb8-vyronix/docs/MANUAL_HARDWARE_TESTING.md"
+    about: "Step-by-step procedures, pass/fail criteria and the compatibility matrix for real Windows devices."
+  - name: "✉️ Email the owner (private)"
+    url: "mailto:merqoonline@gmail.com"
+    about: "Report test results or sensitive/security issues privately to Shohan Khan."

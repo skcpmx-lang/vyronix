@@ -40,8 +40,10 @@ Status: ✅ implemented + logic validated · 🖥 implemented, on-hardware valid
 | Unsigned builds | no signing cert; SmartScreen note in docs | ✅ |
 | Six tracking docs + architecture/plan | `docs/` suite | ✅ |
 | Resumable via CONTINUE | recovery procedure in IMPLEMENTATION_PLAN | ✅ |
-| CI/CD | ci.yml (core), backend.yml (Windows), release (pending) | 🔄 |
-| Verified Windows executable + release | packaging + smoke + gates | ⏳ |
+| CI/CD | ci.yml (core+frontend), backend.yml (Windows), package.yml, release.yml | ✅ |
+| Verified Windows executable + release | packaging + smoke + gates; draft pre-release v0.1.0 | ✅ (draft; publication gated) |
+| Manual hardware testing process | `MANUAL_HARDWARE_TESTING.md` + report template + issue forms | ✅ (process); results owner-recorded |
+| Physical-device validation | Owner performs on real Windows 10/11; recorded in VALIDATION.md after submission | ⏳ (owner) |
 
 ## Non-goals / explicitly out of scope
 

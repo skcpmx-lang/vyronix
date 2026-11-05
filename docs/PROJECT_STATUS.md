@@ -59,19 +59,33 @@ Legend: ✅ implemented + logic validated · 🖥 implemented, needs on-hardware
 5. ✅ **Release gates** — all automatable gates in `RELEASE_READINESS.md` satisfied.
 6. ✅ **Cleanup** — temporary diagnostic helpers removed; `cargo fmt --check` restored.
 7. ✅ **Draft pre-release `v0.1.0` created** with portable exe + installer + checksums.
+8. ✅ **Manual hardware testing kit** — `MANUAL_HARDWARE_TESTING.md` (per-module procedures,
+   pass/fail criteria, evidence, troubleshooting + full compatibility matrix), a fill-in
+   report template, and GitHub issue forms for test reports and hardware-specific bugs.
+
+## Validation levels
+
+- **A — Automated** (unit tests, clippy, fmt, typecheck, build): ✅ done.
+- **B — Windows CI** (compile, packaging, launch smoke test, checksums): ✅ done.
+- **C — Physical device** (real sensors/peripherals on Windows 10/11): ⏳ **performed manually
+  by the owner** using `MANUAL_HARDWARE_TESTING.md`; recorded in `VALIDATION.md` only after
+  the owner submits observed results. Not a blocker for the draft release.
 
 ## Remaining work
 
-1. **On-hardware validation** — run VYRONIX on real Windows 10/11 devices and record
-   actual sensor/benchmark behaviour (the primary limitation of sandbox development).
-2. **Publish the release** — the draft pre-release is ready; publication is a deliberate
-   step requiring owner authorization (and ideally after on-hardware validation).
+1. **Physical-device validation (owner)** — the owner runs the manual tests on real Windows
+   10/11 computers and submits results via the “Hardware test report” issue form or email.
+   Results are then recorded in `VALIDATION.md`. This does not block the draft release.
+2. **Publish the release (owner authorization required)** — the draft pre-release is ready and
+   stays a draft until the owner explicitly authorizes publication. No release assets are
+   deleted and no release history is rewritten.
 3. **Post-release hardening** — strict CSP, dependency auditing, optional code-signing.
 
 ## Honesty note
 
-The development environment is a Linux sandbox without a Rust toolchain or Windows
-hardware. Rust is compiled via GitHub Actions; hardware behaviour is implemented
-against verified OS interfaces but must be validated on a real Windows device before
-any claim of "works on hardware" is made. This document will be updated as evidence
-arrives.
+The development environment is a Linux sandbox without a Rust toolchain or Windows hardware.
+Rust is compiled via GitHub Actions; hardware behaviour is implemented against verified OS
+interfaces. **Physical-device validation is performed manually by the owner** and recorded only
+after they personally observe and submit results — no hardware compatibility is claimed before
+then. Documented limitations and unsupported states remain unchanged. This document is updated
+as evidence arrives.
