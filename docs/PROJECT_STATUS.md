@@ -20,7 +20,7 @@ Windows 10/11 x64 hardware; that limit is recorded in `RELEASE_READINESS.md`.
 | Tauri backend Windows compile | ✅ **`CHECK_EXIT=0`** | `.ci-backend-diagnostics.txt` (Windows CI) |
 | Native app on-hardware validation | ⏳ pending | requires Windows device |
 | Packaging (installer + portable) | ✅ **built + smoke-tested** | portable 6.8 MB + NSIS 2.6 MB; SHA-256 recorded |
-| GitHub Release | 🔄 **draft pre-release being prepared** | published only after gates + authorization |
+| GitHub Release | ✅ **draft pre-release `v0.1.0` created** | portable exe + installer + SHA256SUMS attached; publication gated on authorization |
 
 ## Feature status matrix
 
@@ -50,17 +50,23 @@ Legend: ✅ implemented + logic validated · 🖥 implemented, needs on-hardware
 | Reports PDF/HTML/CSV/JSON | ✅ | 🖥 | Offline PDF; backend bundle. |
 | Settings / themes / search | ✅ | 🖥 | Persisted settings. |
 
-## Remaining work (priority order)
+## Completed milestones
 
-1. **Backend Windows compile** — read `.ci-backend-diagnostics.txt`, fix errors, reach `CHECK_EXIT=0`.
-2. **Frontend CI job** — add typecheck/test/build to `ci.yml` (currently core-only).
-3. **Packaging** — Tauri NSIS installer + portable exe; checksums; release notes.
-4. **Launch smoke test** — verify the exe starts and the window renders on Windows CI.
-5. **On-hardware validation** — document what can/cannot be validated without a physical device.
-6. **Release gates** — satisfy every gate in `RELEASE_READINESS.md`, then publish a
-   clearly-labelled pre-release. **No release exists yet.**
-7. **Cleanup before release** — remove the temporary CI diagnostic helper workflows
-   and `.ci-*diagnostics.txt`, restore `cargo fmt --check` in CI.
+1. ✅ **Backend Windows compile** — `CHECK_EXIT=0`, 0 warnings (Windows CI).
+2. ✅ **Frontend CI job** — typecheck/test/build in `ci.yml`.
+3. ✅ **Packaging** — NSIS installer + portable exe; SHA-256 checksums; release notes.
+4. ✅ **Launch smoke test** — portable exe launched and stayed running on Windows CI.
+5. ✅ **Release gates** — all automatable gates in `RELEASE_READINESS.md` satisfied.
+6. ✅ **Cleanup** — temporary diagnostic helpers removed; `cargo fmt --check` restored.
+7. ✅ **Draft pre-release `v0.1.0` created** with portable exe + installer + checksums.
+
+## Remaining work
+
+1. **On-hardware validation** — run VYRONIX on real Windows 10/11 devices and record
+   actual sensor/benchmark behaviour (the primary limitation of sandbox development).
+2. **Publish the release** — the draft pre-release is ready; publication is a deliberate
+   step requiring owner authorization (and ideally after on-hardware validation).
+3. **Post-release hardening** — strict CSP, dependency auditing, optional code-signing.
 
 ## Honesty note
 
